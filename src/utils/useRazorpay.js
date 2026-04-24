@@ -31,7 +31,7 @@ const useRazorpay = () => {
 
       // 2. Configure Razorpay options
       const options = {
-        key: import.meta.env.VITE_RAZORPAY_KEY_ID || '', // Enter the Key ID generated from the Dashboard
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || '', // Enter the Key ID generated from the Dashboard
         amount: order.amount,
         currency: order.currency,
         name: 'SpotSync',
