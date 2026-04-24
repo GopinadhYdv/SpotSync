@@ -2,10 +2,16 @@
 	"name": "web",
 	"private": true,
 	"type": "module",
+	"engines": {
+		"node": ">=18.0.0",
+		"npm": ">=9.0.0"
+	},
 	"scripts": {
 		"dev": "react-router dev",
 		"build": "npx react-router build",
-		"typecheck": "react-router typegen && tsc --noEmit"
+		"typecheck": "react-router typegen && tsc --noEmit",
+		"start": "NODE_ENV=production node dist/server.js",
+		"preview": "npm run build && npm start"
 	},
 	"dependencies": {
 		"@auth/core": "^0.37.2",
