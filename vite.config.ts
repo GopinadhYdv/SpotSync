@@ -19,6 +19,10 @@ export default defineConfig({
   build: {
     target: 'es2022',
   },
+  ssr: {
+    external: ['utf-8-validate', 'bufferutil', 'supports-color', 'cloudflare:workers'],
+    noExternal: ['react-router-hono-server'],
+  },
   optimizeDeps: {
     // Explicitly include fast-glob, since it gets dynamically imported and we
     // don't want that to cause a re-bundle.
