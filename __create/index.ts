@@ -24,6 +24,20 @@ import { API_BASENAME, api } from './route-builder';
 neonConfig.webSocketConstructor = ws;
 
 const als = new AsyncLocalStorage<{ requestId: string }>();
+const AUTH_BASE_PATH = '/api/auth';
+
+function normalizeAuthUrl(value?: string | null, fallbackOrigin?: string) {
+  const raw = value?.trim();
+  const base = raw || fallbackOrigin;
+  if (!base) return undefined;
+
+  const url = new URL(base);
+  const pathname = url.pathname === '/' ? AUTH_BASE_PATH : url.pathname.replace(/\/$/, '');
+  url.pathname = pathname.endsWith(AUTH_BASE_PATH) ? pathname : `${pathname}${AUTH_BASE_PATH}`;
+  url.search = '';
+  url.hash = '';
+  return url.toString().replace(/\/$/, '');
+}
 
 for (const method of ['log', 'info', 'warn', 'error', 'debug'] as const) {
   const original = nodeConsole[method].bind(console);
@@ -92,7 +106,7 @@ if (process.env.AUTH_SECRET) {
     '*',
     initAuthConfig((c) => ({
       secret: c.env.AUTH_SECRET,
-      basePath: '/api/auth',
+      basePath: AUTH_BASE_PATH,
       trustHost: true,
       pages: {
         signIn: '/account/signin',
@@ -275,18 +289,35 @@ app.all('/integrations/:path{.+}', async (c, next) => {
 });
 
 app.use('/api/auth/*', async (c, next) => {
+  const runtimeEnv = c.env ?? process.env;
+  runtimeEnv.AUTH_URL = normalizeAuthUrl(runtimeEnv.AUTH_URL, new URL(c.req.url).origin);
+
   if (isAuthAction(c.req.path)) {
     return authHandler()(c, next);
   }
   return next();
 });
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID || '',
-  key_secret: process.env.RAZORPAY_KEY_SECRET || '',
-});
+const getRazorpayClient = () => {
+  const keyId = process.env.RAZORPAY_KEY_ID;
+  const keySecret = process.env.RAZORPAY_KEY_SECRET;
+
+  if (!keyId || !keySecret) {
+    return null;
+  }
+
+  return new Razorpay({
+    key_id: keyId,
+    key_secret: keySecret,
+  });
+};
 
 app.post('/api/razorpay/create-order', async (c) => {
   try {
+    const razorpay = getRazorpayClient();
+    if (!razorpay) {
+      return c.json({ error: 'Razorpay is not configured' }, 503);
+    }
+
     const { amount, currency = 'INR', receipt } = await c.req.json();
     const options = {
       amount: amount * 100, // amount in the smallest currency unit
@@ -303,6 +334,10 @@ app.post('/api/razorpay/create-order', async (c) => {
 
 app.post('/api/razorpay/verify-payment', async (c) => {
   try {
+    if (!process.env.RAZORPAY_KEY_SECRET) {
+      return c.json({ error: 'Razorpay is not configured' }, 503);
+    }
+
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = await c.req.json();
     const secret = process.env.RAZORPAY_KEY_SECRET || '';
     const hmac = crypto.createHmac('sha256', secret);
@@ -322,7 +357,7 @@ app.post('/api/razorpay/verify-payment', async (c) => {
 
 app.route(API_BASENAME, api);
 
-export default await createHonoServer({
+export default createHonoServer({
   app,
   defaultLogger: false,
 });

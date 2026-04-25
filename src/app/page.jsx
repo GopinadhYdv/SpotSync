@@ -668,7 +668,7 @@ export default function HomePage() {
                 backgroundClip: "text",
               }}
             >
-              SpotSync
+              Ease Events
             </h3>
             <p className="text-gray-500 max-w-sm leading-relaxed text-sm">
               India's real-time event booking platform. Discover, explore, and secure your
@@ -706,7 +706,7 @@ export default function HomePage() {
           className="max-w-7xl mx-auto px-4 mt-16 pt-8 border-t flex flex-col md:flex-row justify-between items-center gap-4 text-gray-600 text-xs"
           style={{ borderColor: "rgba(255,255,255,0.05)" }}
         >
-          <p>© 2026 SpotSync. All rights reserved.</p>
+          <p>© 2026 Ease Events. All rights reserved.</p>
           <div className="flex gap-8">
             <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
             <a href="#" className="hover:text-white transition-colors">Terms of Service</a>

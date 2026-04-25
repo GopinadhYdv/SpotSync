@@ -9,10 +9,17 @@ const safeStringify = (value: unknown) =>
     return v;
   });
 
+type ConsoleLevel = keyof Pick<Console, 'log' | 'info' | 'warn' | 'error' | 'debug'>;
+
+const isConsoleLevel = (level: string): level is ConsoleLevel => {
+  return ['log', 'info', 'warn', 'error', 'debug'].includes(level);
+};
+
 const postToParent = (level: string, text: string, extra: unknown) => {
   try {
     if (isBackend() || !window.parent || window.parent === window) {
-      ('level' in console ? console[level] : console.log)(text, extra);
+      const logger = isConsoleLevel(level) ? console[level] : console.log;
+      logger(text, extra);
       return;
     }
     window.parent.postMessage(

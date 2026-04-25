@@ -1,5 +1,6 @@
-// ─── SpotSync Account Store ───────────────────────────────────────────────────
-// Persists user profile + purchased tickets + wishlist in localStorage
+// ─── Ease Events Account Store ────────────────────────────────────────────────
+// Persists user profile + purchased tickets + wishlist in localStorage.
+// Keep the legacy `spotsync_*` keys to avoid losing existing local data.
 
 const PROFILE_KEY  = "spotsync_profile";
 const TICKETS_KEY  = "spotsync_tickets";

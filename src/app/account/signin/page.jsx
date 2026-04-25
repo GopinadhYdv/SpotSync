@@ -54,7 +54,7 @@ export default function SignInPage() {
             </div>
 
             <h2 className="text-3xl font-black mb-2 text-center text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-cyan-400">
-              Welcome to SpotSync
+              Welcome to Ease Events
             </h2>
             <p className="text-gray-400 text-center mb-8">
               Sign in to book tickets, manage your wishlist, and access your exclusive dashboard.

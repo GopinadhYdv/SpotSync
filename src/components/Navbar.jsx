@@ -57,7 +57,7 @@ export default function Navbar() {
                   backgroundClip: "text",
                 }}
               >
-                SpotSync
+                Ease Events
               </span>
             </a>
           </div>

@@ -215,7 +215,7 @@ export default function AccountPage() {
               </motion.span>
             )}
           </div>
-          <p className="text-gray-400">Manage your SpotSync profile, tickets, and preferences.</p>
+          <p className="text-gray-400">Manage your Ease Events profile, tickets, and preferences.</p>
         </header>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
@@ -225,7 +225,7 @@ export default function AccountPage() {
               <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 blur-3xl rounded-full" />
               <AvatarUpload profile={profile} onSave={(updates) => setProfile(saveProfile(updates))} />
               <h2 className="text-xl font-black mb-1 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-cyan-400">
-                {profile.name || "SpotSync User"}
+                {profile.name || "Ease Events User"}
               </h2>
               <p className="text-gray-500 text-sm mb-2 flex items-center justify-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_8px_#22d3ee]" />

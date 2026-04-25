@@ -467,7 +467,7 @@ function MagicCarpetTicket({ event, name, ticketCount, ticketId, ticketRef }) {
                 borderTop:"1px solid rgba(255,255,255,0.06)",
                 display:"flex", justifyContent:"space-between", alignItems:"center",
               }}>
-                <span style={{ fontSize:10, fontWeight:900, color:"rgba(255,255,255,0.25)", fontStyle:"italic" }}>SpotSync</span>
+                <span style={{ fontSize:10, fontWeight:900, color:"rgba(255,255,255,0.25)", fontStyle:"italic" }}>Ease Events</span>
                 <span style={{ fontSize:7, color:"rgba(255,255,255,0.15)", letterSpacing:"0.08em" }}>SCAN AT ENTRY</span>
               </div>
             </div>

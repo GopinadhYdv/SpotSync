@@ -10,7 +10,7 @@
 		"dev": "react-router dev",
 		"build": "npx react-router build",
 		"typecheck": "react-router typegen && tsc --noEmit",
-		"start": "NODE_ENV=production node dist/server.js",
+		"start": "node build/server/index.js",
 		"preview": "npm run build && npm start"
 	},
 	"dependencies": {
@@ -25,6 +25,7 @@
 		"@lshay/ui": "^0.1.32",
 		"@neondatabase/serverless": "^0.10.4",
 		"@react-aria/button": "^3.13.1",
+		"@react-router/dev": "^7.6.0",
 		"@react-router/fs-routes": "^7.6.0",
 		"@react-router/node": "^7.6.0",
 		"@react-router/serve": "^7.6.0",
@@ -69,8 +70,7 @@
 		"vaul": "^1.1.2",
 		"ws": "^8.18.2",
 		"yup": "^1.6.1",
-		"zustand": "^5.0.3",
-		"@react-router/dev": "^7.6.0"
+		"zustand": "^5.0.3"
 	},
 	"devDependencies": {
 		"@babel/core": "^7.27.1",

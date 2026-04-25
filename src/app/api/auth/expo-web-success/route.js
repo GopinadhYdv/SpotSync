@@ -1,16 +1,22 @@
 import { getToken } from '@auth/core/jwt';
+
+function getSecureCookieFlag() {
+	const authUrl = process.env.AUTH_URL || process.env.NEXT_PUBLIC_APP_URL || '';
+	return authUrl.startsWith('https://');
+}
+
 export async function GET(request) {
 	const [token, jwt] = await Promise.all([
 		getToken({
 			req: request,
 			secret: process.env.AUTH_SECRET,
-			secureCookie: process.env.AUTH_URL.startsWith('https'),
+			secureCookie: getSecureCookieFlag(),
 			raw: true,
 		}),
 		getToken({
 			req: request,
 			secret: process.env.AUTH_SECRET,
-			secureCookie: process.env.AUTH_URL.startsWith('https'),
+			secureCookie: getSecureCookieFlag(),
 		}),
 	]);
 
