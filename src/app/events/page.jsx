@@ -19,7 +19,8 @@ import {
 } from "lucide-react";
 import Navbar from "../../components/Navbar";
 import { cn } from "../../utils/cn";
-import { getStoredEvents } from "../../utils/adminStore";
+import { getStoredEvents, subscribeToEvents } from "../../utils/adminStore";
+import { loadEvents } from "../../utils/eventService";
 export default function EventsPage() {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("");
@@ -29,6 +30,8 @@ export default function EventsPage() {
   
   React.useEffect(() => {
     setEvents(getStoredEvents());
+    loadEvents().then((nextEvents) => setEvents(nextEvents || []));
+    return subscribeToEvents((nextEvents) => setEvents(nextEvents || []));
   }, []);
 
   // Filtering Logic

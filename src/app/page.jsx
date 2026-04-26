@@ -16,7 +16,8 @@ import {
   Landmark,
 } from "lucide-react";
 import Navbar from "../components/Navbar";
-import { getStoredEvents } from "../utils/adminStore";
+import { getStoredEvents, subscribeToEvents } from "../utils/adminStore";
+import { loadEvents } from "../utils/eventService";
 // ── 3D Hexagonal Prism Cube Component ────────────────────────────────────────
 function HexagonalCube({ events, currentFace, onFaceClick }) {
   const radius = 260; // translateZ distance for each face
@@ -299,6 +300,8 @@ export default function HomePage() {
 
   useEffect(() => {
     setEvents(getStoredEvents() || []);
+    loadEvents().then((nextEvents) => setEvents(nextEvents || []));
+    return subscribeToEvents((nextEvents) => setEvents(nextEvents || []));
   }, []);
 
   // Auto-rotate every 3.5s

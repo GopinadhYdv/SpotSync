@@ -1,18 +1,62 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, Calendar, Users, Ticket, TrendingUp, Settings, LogOut,
-  Plus, Edit, Trash2, Star, StarHalf, MessageSquare, DollarSign, User, ShieldAlert, Check, X
+  Plus, Edit, Trash2, Star, DollarSign, User, ShieldAlert, X
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  BarChart, Bar
 } from "recharts";
 import { cn } from "../../utils/cn";
 import {
   adminLogin, isAdminLoggedIn, setAdminAuth, getAnalytics,
-  addEvent, updateEvent, deleteEvent, getStoredEvents, getEventRatings
+  getEventRatings, subscribeToEvents
 } from "../../utils/adminStore";
+import { createRemoteEvent, deleteRemoteEvent, loadEvents, updateRemoteEvent } from "../../utils/eventService";
+
+const defaultEventForm = () => ({
+  title: "",
+  category: "",
+  location: "",
+  venueAddress: "",
+  date: "",
+  time: "18:00",
+  price: 0,
+  capacity: 100,
+  organizer: "Ease Events",
+  badge: "New Event",
+  color: "#7c3aed",
+  accent: "#3b82f6",
+  featured: false,
+  shortDescription: "",
+  longDescription: "",
+  poster: "",
+  seatLayout: {
+    sections: [
+      { id: "floor", label: "Floor - General", rows: 4, cols: 12, color: "#10b981", priceAdd: 0 },
+      { id: "lower", label: "Lower Deck - Premium", rows: 3, cols: 10, color: "#6366f1", priceAdd: 500 },
+      { id: "vip", label: "Upper Deck - VIP", rows: 2, cols: 8, color: "#f59e0b", priceAdd: 1500 },
+    ],
+  },
+});
+
+function mapEventToForm(event) {
+  const base = defaultEventForm();
+  return {
+    ...base,
+    ...event,
+    venueAddress: event?.venueAddress || event?.location || "",
+    shortDescription: event?.shortDescription || event?.description || "",
+    longDescription: event?.longDescription || event?.description || "",
+    seatLayout: {
+      sections: base.seatLayout.sections.map((section, index) => ({
+        ...section,
+        ...(event?.seatLayout?.sections?.[index] || {}),
+      })),
+    },
+  };
+}
 
 function AdminLoginForm({ onLogin }) {
   const [email, setEmail] = useState("");
@@ -56,20 +100,31 @@ function AdminLoginForm({ onLogin }) {
 }
 
 export default function AdminDashboard() {
+  const navigate = useNavigate();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
   const [analytics, setAnalytics] = useState(null);
   const [editingEvent, setEditingEvent] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [eventForm, setEventForm] = useState(defaultEventForm());
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     setIsAuthenticated(isAdminLoggedIn());
     refreshData();
+    return subscribeToEvents(() => refreshData());
   }, []);
 
-  const refreshData = () => {
+  const refreshData = async () => {
+    await loadEvents();
     setAnalytics(getAnalytics());
   };
+
+  useEffect(() => {
+    if (isModalOpen) {
+      setEventForm(editingEvent ? mapEventToForm(editingEvent) : defaultEventForm());
+    }
+  }, [editingEvent, isModalOpen]);
 
   if (!isAuthenticated) {
     return <AdminLoginForm onLogin={() => { setIsAuthenticated(true); refreshData(); }} />;
@@ -80,35 +135,79 @@ export default function AdminDashboard() {
     setIsAuthenticated(false);
   };
 
-  const handleSaveEvent = (e) => {
-    e.preventDefault();
-    const formData = new FormData(e.target);
-    const eventData = {
-      title: formData.get("title"),
-      category: formData.get("category"),
-      location: formData.get("location"),
-      date: formData.get("date"),
-      price: Number(formData.get("price")),
-      color: formData.get("color") || "#7c3aed",
-      featured: formData.get("featured") === "on",
-      shortDescription: formData.get("shortDescription"),
-    };
-
-    if (editingEvent?.id) {
-      updateEvent(editingEvent.id, eventData);
-    } else {
-      addEvent(eventData);
-    }
-    
-    setIsModalOpen(false);
-    setEditingEvent(null);
-    refreshData();
+  const handleFieldChange = (field, value) => {
+    setEventForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleDeleteEvent = (id) => {
+  const handleSeatSectionChange = (index, field, value) => {
+    setEventForm((prev) => ({
+      ...prev,
+      seatLayout: {
+        sections: prev.seatLayout.sections.map((section, sectionIndex) =>
+          sectionIndex === index ? { ...section, [field]: value } : section,
+        ),
+      },
+    }));
+  };
+
+  const handlePosterUpload = (file) => {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      handleFieldChange("poster", ev.target?.result || "");
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSaveEvent = async (e) => {
+    e.preventDefault();
+    setIsSaving(true);
+    const eventData = {
+      ...eventForm,
+      price: Number(eventForm.price),
+      capacity: Number(eventForm.capacity),
+      description: eventForm.shortDescription,
+      seatLayout: {
+        sections: eventForm.seatLayout.sections.map((section) => ({
+          ...section,
+          rows: Number(section.rows),
+          cols: Number(section.cols),
+          priceAdd: Number(section.priceAdd),
+          priceLabel: Number(section.priceAdd) > 0 ? `+₹${Number(section.priceAdd).toLocaleString("en-IN")}` : "Included",
+        })),
+      },
+    };
+
+    try {
+      let savedEvent;
+      if (editingEvent?.id) {
+        savedEvent = await updateRemoteEvent(editingEvent.id, eventData);
+      } else {
+        savedEvent = await createRemoteEvent(eventData);
+      }
+
+      setIsModalOpen(false);
+      setEditingEvent(null);
+      setEventForm(defaultEventForm());
+      await refreshData();
+      if (!editingEvent?.id && savedEvent?.id) {
+        navigate(`/events/${savedEvent.id}`);
+      }
+    } catch (error) {
+      window.alert(error.message || "Failed to save event.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDeleteEvent = async (id) => {
     if(window.confirm("Are you sure you want to delete this event?")) {
-      deleteEvent(id);
-      refreshData();
+      try {
+        await deleteRemoteEvent(id);
+        await refreshData();
+      } catch (error) {
+        window.alert(error.message || "Failed to delete event.");
+      }
     }
   };
 
@@ -192,7 +291,7 @@ export default function AdminDashboard() {
           <div className="flex items-center space-x-4">
             {activeTab === 'events' && (
               <button 
-                onClick={() => { setEditingEvent(null); setIsModalOpen(true); }}
+                onClick={() => { setEditingEvent(null); setEventForm(defaultEventForm()); setIsModalOpen(true); }}
                 className="flex items-center gap-2 px-4 py-2 bg-white text-black font-bold rounded-xl hover:bg-gray-200 transition-all shadow-[0_0_20px_rgba(255,255,255,0.2)]"
               >
                 <Plus size={18} /> New Event
@@ -374,40 +473,103 @@ export default function AdminDashboard() {
                 <div className="grid grid-cols-2 gap-5">
                   <div className="col-span-2">
                     <label className="block text-sm font-bold text-gray-400 mb-2">Event Title</label>
-                    <input name="title" defaultValue={editingEvent?.title} required className="w-full bg-black border border-white/10 rounded-xl p-3 text-white focus:border-purple-500 outline-none" />
+                    <input value={eventForm.title} onChange={(e) => handleFieldChange("title", e.target.value)} required className="w-full bg-black border border-white/10 rounded-xl p-3 text-white focus:border-purple-500 outline-none" />
                   </div>
                   <div>
                     <label className="block text-sm font-bold text-gray-400 mb-2">Category</label>
-                    <input name="category" defaultValue={editingEvent?.category} required className="w-full bg-black border border-white/10 rounded-xl p-3 text-white focus:border-purple-500 outline-none" />
+                    <input value={eventForm.category} onChange={(e) => handleFieldChange("category", e.target.value)} required className="w-full bg-black border border-white/10 rounded-xl p-3 text-white focus:border-purple-500 outline-none" />
                   </div>
                   <div>
                     <label className="block text-sm font-bold text-gray-400 mb-2">Date</label>
-                    <input type="date" name="date" defaultValue={editingEvent?.date} required className="w-full bg-black border border-white/10 rounded-xl p-3 text-white focus:border-purple-500 outline-none" style={{ colorScheme: "dark" }} />
+                    <input type="date" value={eventForm.date} onChange={(e) => handleFieldChange("date", e.target.value)} required className="w-full bg-black border border-white/10 rounded-xl p-3 text-white focus:border-purple-500 outline-none" style={{ colorScheme: "dark" }} />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-gray-400 mb-2">Start Time</label>
+                    <input type="time" value={eventForm.time} onChange={(e) => handleFieldChange("time", e.target.value)} required className="w-full bg-black border border-white/10 rounded-xl p-3 text-white focus:border-purple-500 outline-none" style={{ colorScheme: "dark" }} />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-gray-400 mb-2">Organizer</label>
+                    <input value={eventForm.organizer} onChange={(e) => handleFieldChange("organizer", e.target.value)} className="w-full bg-black border border-white/10 rounded-xl p-3 text-white focus:border-purple-500 outline-none" />
                   </div>
                   <div className="col-span-2">
                     <label className="block text-sm font-bold text-gray-400 mb-2">Location/Venue</label>
-                    <input name="location" defaultValue={editingEvent?.location} required className="w-full bg-black border border-white/10 rounded-xl p-3 text-white focus:border-purple-500 outline-none" />
+                    <input value={eventForm.location} onChange={(e) => handleFieldChange("location", e.target.value)} required className="w-full bg-black border border-white/10 rounded-xl p-3 text-white focus:border-purple-500 outline-none" />
+                  </div>
+                  <div className="col-span-2">
+                    <label className="block text-sm font-bold text-gray-400 mb-2">Venue Address / Maps Label</label>
+                    <input value={eventForm.venueAddress} onChange={(e) => handleFieldChange("venueAddress", e.target.value)} className="w-full bg-black border border-white/10 rounded-xl p-3 text-white focus:border-purple-500 outline-none" />
                   </div>
                   <div>
                     <label className="block text-sm font-bold text-gray-400 mb-2">Price (₹)</label>
-                    <input type="number" name="price" defaultValue={editingEvent?.price} required min="0" className="w-full bg-black border border-white/10 rounded-xl p-3 text-white focus:border-purple-500 outline-none" />
+                    <input type="number" value={eventForm.price} onChange={(e) => handleFieldChange("price", e.target.value)} required min="0" className="w-full bg-black border border-white/10 rounded-xl p-3 text-white focus:border-purple-500 outline-none" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-gray-400 mb-2">Capacity</label>
+                    <input type="number" value={eventForm.capacity} onChange={(e) => handleFieldChange("capacity", e.target.value)} required min="1" className="w-full bg-black border border-white/10 rounded-xl p-3 text-white focus:border-purple-500 outline-none" />
                   </div>
                   <div>
                     <label className="block text-sm font-bold text-gray-400 mb-2">Theme Color (Hex)</label>
-                    <input type="color" name="color" defaultValue={editingEvent?.color || "#7c3aed"} className="w-full h-[46px] bg-black border border-white/10 rounded-xl p-1 outline-none" />
+                    <input type="color" value={eventForm.color} onChange={(e) => handleFieldChange("color", e.target.value)} className="w-full h-[46px] bg-black border border-white/10 rounded-xl p-1 outline-none" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-gray-400 mb-2">Accent Color</label>
+                    <input type="color" value={eventForm.accent} onChange={(e) => handleFieldChange("accent", e.target.value)} className="w-full h-[46px] bg-black border border-white/10 rounded-xl p-1 outline-none" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-gray-400 mb-2">Badge</label>
+                    <input value={eventForm.badge} onChange={(e) => handleFieldChange("badge", e.target.value)} className="w-full bg-black border border-white/10 rounded-xl p-3 text-white focus:border-purple-500 outline-none" />
+                  </div>
+                  <div className="col-span-2">
+                    <label className="block text-sm font-bold text-gray-400 mb-2">Poster</label>
+                    <div className="grid gap-3 md:grid-cols-[1fr_160px]">
+                      <div className="space-y-3">
+                        <input type="url" value={eventForm.poster} onChange={(e) => handleFieldChange("poster", e.target.value)} placeholder="Paste poster image URL or upload below" className="w-full bg-black border border-white/10 rounded-xl p-3 text-white focus:border-purple-500 outline-none" />
+                        <input type="file" accept="image/*" onChange={(e) => handlePosterUpload(e.target.files?.[0])} className="w-full bg-black border border-white/10 rounded-xl p-3 text-sm text-gray-300 file:mr-3 file:rounded-lg file:border-0 file:bg-purple-600 file:px-3 file:py-2 file:text-white" />
+                      </div>
+                      <div className="h-40 rounded-2xl overflow-hidden border border-white/10 bg-black/60">
+                        {eventForm.poster ? (
+                          <img src={eventForm.poster} alt="Poster preview" className="h-full w-full object-cover" />
+                        ) : (
+                          <div className="flex h-full items-center justify-center text-center text-xs font-bold text-gray-500 px-4">Poster preview</div>
+                        )}
+                      </div>
+                    </div>
                   </div>
                   <div className="col-span-2 flex items-center gap-3">
-                     <input type="checkbox" name="featured" id="featured" defaultChecked={editingEvent?.featured} className="w-5 h-5 accent-purple-500" />
+                     <input type="checkbox" id="featured" checked={eventForm.featured} onChange={(e) => handleFieldChange("featured", e.target.checked)} className="w-5 h-5 accent-purple-500" />
                      <label htmlFor="featured" className="font-bold text-gray-300">Feature this event on homepage</label>
                   </div>
                   <div className="col-span-2">
                     <label className="block text-sm font-bold text-gray-400 mb-2">Short Description</label>
-                    <textarea name="shortDescription" defaultValue={editingEvent?.description} rows="3" required className="w-full bg-black border border-white/10 rounded-xl p-3 text-white focus:border-purple-500 outline-none"></textarea>
+                    <textarea value={eventForm.shortDescription} onChange={(e) => handleFieldChange("shortDescription", e.target.value)} rows="3" required className="w-full bg-black border border-white/10 rounded-xl p-3 text-white focus:border-purple-500 outline-none"></textarea>
+                  </div>
+                  <div className="col-span-2">
+                    <label className="block text-sm font-bold text-gray-400 mb-2">Full Event Details</label>
+                    <textarea value={eventForm.longDescription} onChange={(e) => handleFieldChange("longDescription", e.target.value)} rows="5" required className="w-full bg-black border border-white/10 rounded-xl p-3 text-white focus:border-purple-500 outline-none"></textarea>
+                  </div>
+                  <div className="col-span-2">
+                    <div className="flex items-center justify-between mb-3">
+                      <label className="block text-sm font-bold text-gray-400">Seat Map Sections</label>
+                      <span className="text-xs text-gray-500">These values drive the booking seat map in real time.</span>
+                    </div>
+                    <div className="space-y-3">
+                      {eventForm.seatLayout.sections.map((section, index) => (
+                        <div key={section.id} className="grid grid-cols-4 gap-3 rounded-2xl border border-white/10 bg-black/40 p-4">
+                          <input value={section.label} onChange={(e) => handleSeatSectionChange(index, "label", e.target.value)} className="col-span-4 md:col-span-2 bg-black border border-white/10 rounded-xl p-3 text-white outline-none" placeholder="Section label" />
+                          <input type="number" min="1" value={section.rows} onChange={(e) => handleSeatSectionChange(index, "rows", e.target.value)} className="bg-black border border-white/10 rounded-xl p-3 text-white outline-none" placeholder="Rows" />
+                          <input type="number" min="1" value={section.cols} onChange={(e) => handleSeatSectionChange(index, "cols", e.target.value)} className="bg-black border border-white/10 rounded-xl p-3 text-white outline-none" placeholder="Cols" />
+                          <input type="number" min="0" value={section.priceAdd} onChange={(e) => handleSeatSectionChange(index, "priceAdd", e.target.value)} className="bg-black border border-white/10 rounded-xl p-3 text-white outline-none" placeholder="Upgrade price" />
+                          <input type="color" value={section.color} onChange={(e) => handleSeatSectionChange(index, "color", e.target.value)} className="h-[48px] bg-black border border-white/10 rounded-xl p-1 outline-none" />
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
                 <div className="flex justify-end gap-3 mt-8">
-                   <button type="button" onClick={()=>setIsModalOpen(false)} className="px-6 py-3 rounded-xl font-bold bg-white/5 hover:bg-white/10 transition-colors">Cancel</button>
-                   <button type="submit" className="px-6 py-3 rounded-xl font-bold bg-purple-600 hover:bg-purple-700 text-white transition-colors">{editingEvent ? 'Save Changes' : 'Create Event'}</button>
+                   <button type="button" onClick={()=>setIsModalOpen(false)} disabled={isSaving} className="px-6 py-3 rounded-xl font-bold bg-white/5 hover:bg-white/10 transition-colors disabled:opacity-50">Cancel</button>
+                   <button type="submit" disabled={isSaving} className="px-6 py-3 rounded-xl font-bold bg-purple-600 hover:bg-purple-700 text-white transition-colors disabled:opacity-50">
+                     {isSaving ? "Saving..." : editingEvent ? 'Save Changes' : 'Create Event'}
+                   </button>
                 </div>
               </form>
             </motion.div>

@@ -853,9 +853,31 @@ export default function PaymentModal({ isOpen, onClose, event }) {
       eventTitle: event.title,
       userName: name,
       userEmail: email,
-      onSuccess: (response) => {
+      onSuccess: async (response) => {
         const id = Math.random().toString(36).substring(2,10).toUpperCase();
         const tid = `STK-${id}`;
+        
+        try {
+          await fetch('/api/bookings/confirm', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              ticketId: tid,
+              eventId: String(event.id),
+              userId: null,
+              userName: name,
+              userEmail: email,
+              ticketCount,
+              totalAmount: finalAmount,
+              paymentId: response.razorpay_payment_id,
+              orderId: response.razorpay_order_id,
+              seats: selectedSeats
+            })
+          });
+        } catch (err) {
+          console.error("Backend sync failed", err);
+        }
+
         setTicketId(tid);
         
         // Save ticket to account store

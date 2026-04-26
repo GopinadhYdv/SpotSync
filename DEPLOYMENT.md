@@ -40,6 +40,10 @@ Create the variables from [.env.example](./.env.example) in Vercel for `Producti
 - `RAZORPAY_KEY_SECRET`
 - `NEXT_PUBLIC_RAZORPAY_KEY_ID`
 
+### Realtime seat locking
+
+- `NEXT_PUBLIC_ABLY_API_KEY`
+
 ### Maps
 
 - `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`
@@ -51,6 +55,7 @@ Create the variables from [.env.example](./.env.example) in Vercel for `Producti
 - `NEXT_PUBLIC_CREATE_API_BASE_URL`
 - `NEXT_PUBLIC_CREATE_HOST`
 - `NEXT_PUBLIC_PROJECT_GROUP_ID`
+- `CREATE_TEMP_API_KEY`
 
 ## 3. Recommended production values
 
@@ -70,6 +75,8 @@ npm run typecheck
 npm run build
 npm start
 ```
+
+Before running the app, apply [`database/schema.sql`](./database/schema.sql) in Neon/Postgres so the events, bookings, and seats tables include the fields used by the admin panel.
 
 Expected result:
 
@@ -122,6 +129,7 @@ After the first deployment, verify:
 3. Google sign-in redirects to the correct callback URL.
 4. API routes respond without `500` errors.
 5. Payment flow only appears in environments where Razorpay keys are configured.
+6. Seat locking sync works between two browser sessions when `NEXT_PUBLIC_ABLY_API_KEY` is configured.
 
 ## 10. Common failure points
 
@@ -151,6 +159,11 @@ After the first deployment, verify:
 - `NEXT_PUBLIC_RAZORPAY_KEY_ID`
 
 All three must match the same Razorpay environment.
+
+### Seat locking not updating in real time
+
+- `NEXT_PUBLIC_ABLY_API_KEY` is missing, invalid, or still set to the placeholder value
+- clients can still select seats locally, but cross-session lock updates will not sync without Ably
 
 ## 11. Current repo notes
 

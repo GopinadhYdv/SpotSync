@@ -355,6 +355,47 @@ app.post('/api/razorpay/verify-payment', async (c) => {
   }
 });
 
+app.post('/api/bookings/confirm', async (c) => {
+  try {
+    const { 
+      ticketId, eventId, userId, userName, userEmail, 
+      ticketCount, totalAmount, paymentId, orderId, seats 
+    } = await c.req.json();
+
+    // 1. Create booking
+    const bookingSql = `
+      INSERT INTO bookings (id, event_id, user_id, user_name, user_email, ticket_count, total_amount, payment_id, order_id, status)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'confirmed')
+      RETURNING id
+    `;
+    const bookingResult = await pool.query(bookingSql, [
+      ticketId, eventId, userId, userName, userEmail, 
+      ticketCount, totalAmount, paymentId, orderId
+    ]);
+    const bookingId = bookingResult.rows[0].id;
+
+    // 2. Insert seats
+    if (seats && Array.isArray(seats)) {
+      for (const seat of seats) {
+        const seatSql = `
+          INSERT INTO seats (event_id, booking_id, seat_identifier, section_id, row_label, col_index)
+          VALUES ($1, $2, $3, $4, $5, $6)
+        `;
+        const parts = seat.split('-');
+        const sectionId = parts[0];
+        const seatPos = parts[1];
+        const rowLabel = seatPos?.charAt(0) || '';
+        const colIndex = parseInt(seatPos?.substring(1) || '0');
+        await pool.query(seatSql, [eventId, bookingId, seat, sectionId, rowLabel, colIndex]);
+      }
+    }
+    return c.json({ status: 'success', bookingId });
+  } catch (error) {
+    console.error('Booking Confirmation Error:', error);
+    return c.json({ error: 'Failed to confirm booking' }, 500);
+  }
+});
+
 app.route(API_BASENAME, api);
 
 export default createHonoServer({

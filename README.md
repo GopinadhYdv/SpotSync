@@ -6,7 +6,8 @@ Event discovery and ticketing app built with React Router, Hono, Neon, and Razor
 
 1. Install dependencies with `npm install`
 2. Copy `.env.example` to `.env.local`
-3. Start the dev server with `npm run dev`
+3. Apply the SQL in `database/schema.sql` to your Postgres database
+4. Start the dev server with `npm run dev`
 
 The app runs on `http://localhost:4000` by default.
 

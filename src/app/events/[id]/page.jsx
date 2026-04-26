@@ -7,8 +7,9 @@ import {
 } from "lucide-react";
 import Navbar from "../../../components/Navbar";
 import PaymentModal from "../../../components/PaymentModal";
-import { getStoredEvents, addRating, getEventRatings, getAverageRating } from "../../../utils/adminStore";
+import { getStoredEvents, addRating, getEventRatings, getAverageRating, subscribeToEvents } from "../../../utils/adminStore";
 import { isWishlisted, toggleWishlist } from "../../../utils/accountStore";
+import { loadEvents } from "../../../utils/eventService";
 import { toast } from "sonner";
 
 export default function EventDetailsPage() {
@@ -22,12 +23,19 @@ export default function EventDetailsPage() {
   const [wishlisted, setWishlisted] = useState(false);
 
   useEffect(() => {
-    const ev = getStoredEvents().find((e) => String(e.id) === String(id));
-    setEvent(ev);
-    if (ev) {
-      setReviews(getEventRatings(ev.id));
-      setWishlisted(isWishlisted(ev.id));
-    }
+    const syncEvent = (events = getStoredEvents()) => {
+      const ev = events.find((item) => String(item.id) === String(id));
+      setEvent(ev || null);
+      if (ev) {
+        setReviews(getEventRatings(ev.id));
+        setWishlisted(isWishlisted(ev.id));
+      }
+    };
+
+    syncEvent();
+    loadEvents().then((events) => syncEvent(events));
+    const unsubscribe = subscribeToEvents(syncEvent);
+    return unsubscribe;
   }, [id]);
 
   const handleWishlist = () => {
@@ -37,9 +45,10 @@ export default function EventDetailsPage() {
   };
 
   const handleShareLocation = async () => {
-    const url = `https://google.com/maps/search/?api=1&query=${encodeURIComponent(event.location)}`;
+    const destination = event.venueAddress || event.location;
+    const url = `https://google.com/maps/search/?api=1&query=${encodeURIComponent(destination)}`;
     if (navigator.share) {
-      try { await navigator.share({ title: event.location, text: `Venue for ${event.title}`, url }); }
+      try { await navigator.share({ title: destination, text: `Venue for ${event.title}`, url }); }
       catch {}
     } else {
       await navigator.clipboard.writeText(url);
@@ -71,6 +80,12 @@ export default function EventDetailsPage() {
   const Icon = event?.icon || Calendar;
   const isPast = event && new Date(event.date) < new Date();
   const avgRating = getAverageRating(event.id);
+  const eventTimeLabel = event.time
+    ? new Date(`2000-01-01T${event.time}`).toLocaleTimeString("en-IN", {
+        hour: "numeric",
+        minute: "2-digit",
+      })
+    : "06:00 PM";
 
   return (
     <div className="min-h-screen bg-[#060608] text-white pb-32">
@@ -150,7 +165,7 @@ export default function EventDetailsPage() {
                 </div>
                 <div>
                   <div className="text-sm text-gray-400">Time</div>
-                  <div className="font-bold">06:00 PM onwards</div>
+                  <div className="font-bold">{eventTimeLabel} onwards</div>
                 </div>
               </div>
               <div className="flex items-center gap-4">
@@ -231,8 +246,8 @@ export default function EventDetailsPage() {
                     loading="lazy"
                     allowFullScreen
                     referrerPolicy="no-referrer-when-downgrade"
-                    src={`https://maps.google.com/maps?q=${encodeURIComponent(event.location)}&output=embed`}
-                    title={`Map for ${event.location}`}
+                    src={`https://maps.google.com/maps?q=${encodeURIComponent(event.venueAddress || event.location)}&output=embed`}
+                    title={`Map for ${event.venueAddress || event.location}`}
                   />
                 </div>
 
@@ -251,7 +266,7 @@ export default function EventDetailsPage() {
                       <Share2 size={12} /> Share
                     </button>
                     <a
-                      href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(event.location)}&travelmode=${travelMode}`}
+                      href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(event.venueAddress || event.location)}&travelmode=${travelMode}`}
                       target="_blank" rel="noreferrer"
                       className="flex items-center gap-1.5 text-xs font-black uppercase tracking-widest px-4 py-2 rounded-xl border transition-all hover:opacity-90"
                       style={{

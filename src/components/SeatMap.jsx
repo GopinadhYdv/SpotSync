@@ -1,5 +1,8 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
+import { getEventChannel } from "../utils/ably";
+
+// ... (keep generateSeeding, getSections, etc.)
 
 // ─── Seat map layout config ───────────────────────────────────────────────────
 function generateSeeding(eventId) {
@@ -12,7 +15,16 @@ function generateSeeding(eventId) {
   return seed;
 }
 
-function getSections(eventId) {
+function getSections(event) {
+  if (event?.seatLayout?.sections?.length) {
+    return event.seatLayout.sections.map((section) => ({
+      ...section,
+      badge: section.priceLabel || "Included",
+      emoji: section.emoji || "•",
+    }));
+  }
+
+  const eventId = event?.id;
   const seed = generateSeeding(eventId);
   return [
     {
@@ -52,7 +64,9 @@ function getSections(eventId) {
 }
 
 // Deterministic "pre-taken" seats based on seat id hash
-function isTaken(eventId, sectionId, row, col) {
+function isTaken(eventId, sectionId, row, col, realTimeTaken = []) {
+  if (realTimeTaken.includes(`${sectionId}-${String.fromCharCode(65 + row)}${col + 1}`)) return true;
+  
   const seed = generateSeeding(eventId);
   const hash = (seed + sectionId.charCodeAt(0) + row * 7 + col * 13) % 100;
   const rates = { floor: 45, lower: 30, vip: 20 };
@@ -139,7 +153,7 @@ function SeatGrid({ section, selectedSeats, onToggle, maxSelect, eventId }) {
             </span>
             {Array.from({ length: cols }, (_, c) => {
               const seatId = `${id}-${String.fromCharCode(65 + r)}${c + 1}`;
-              const taken = isTaken(eventId, id, r, c);
+              const taken = isTaken(eventId, id, r, c, section.realTimeTaken);
               const selected = selectedSeats.includes(seatId);
 
               return (
@@ -209,9 +223,42 @@ function SeatGrid({ section, selectedSeats, onToggle, maxSelect, eventId }) {
 export default function SeatMap({ event, ticketCount, onConfirm, onBack }) {
   const [selectedSeats, setSelectedSeats] = useState([]);
   const [selectedSections, setSelectedSections] = useState({});
+  const [realTimeTaken, setRealTimeTaken] = useState([]);
+  const channelRef = useRef(null);
 
   const accentColor = event?.color || "#7c3aed";
   const maxSelect = ticketCount;
+
+  // ── Ably Integration ──────────────────────────────────────────────────────
+  useEffect(() => {
+    if (!event?.id) return;
+    
+    const channel = getEventChannel(event.id);
+    if (!channel) return;
+    channelRef.current = channel;
+
+    // Listen for seat locks from others
+    channel.subscribe('seat:lock', (message) => {
+      const { seatId, userId } = message.data;
+      setRealTimeTaken(prev => [...new Set([...prev, seatId])]);
+    });
+
+    channel.subscribe('seat:unlock', (message) => {
+      const { seatId } = message.data;
+      setRealTimeTaken(prev => prev.filter(id => id !== seatId));
+    });
+
+    // Request current state from others (simplified)
+    channel.publish('request:state', {});
+
+    return () => {
+      // Unlock all seats this user had selected when they leave
+      selectedSeats.forEach(seatId => {
+        channel.publish('seat:unlock', { seatId });
+      });
+      channel.unsubscribe();
+    };
+  }, [event?.id]);
 
   const handleToggle = (seatId, section) => {
     setSelectedSeats((prev) => {
@@ -223,9 +270,15 @@ export default function SeatMap({ event, ticketCount, onConfirm, onBack }) {
           delete updated[seatId];
           return updated;
         });
+        // Broadcast unlock
+        channelRef.current?.publish('seat:unlock', { seatId });
         return next;
       }
       if (prev.length >= maxSelect) return prev; // max reached
+      
+      // Broadcast lock
+      channelRef.current?.publish('seat:lock', { seatId });
+      
       setSelectedSections((sec) => ({ ...sec, [seatId]: section }));
       return [...prev, seatId];
     });
@@ -314,10 +367,10 @@ export default function SeatMap({ event, ticketCount, onConfirm, onBack }) {
           marginBottom: 12,
         }}
       >
-        {getSections(event?.id).map((section) => (
+        {getSections(event).map((section) => (
           <SeatGrid
             key={section.id}
-            section={section}
+            section={{ ...section, realTimeTaken }}
             selectedSeats={selectedSeats}
             onToggle={handleToggle}
             maxSelect={maxSelect}

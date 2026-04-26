@@ -1,9 +1,20 @@
 import { INDIAN_EVENTS } from "./data.js";
 
-// ── Auth ──────────────────────────────────────────────────────────────────────
 export const ADMIN_CREDENTIALS = {
   email: "admin359@gmail.com",
   password: "admin123",
+};
+
+const EVENTS_KEY = "ease_admin_events";
+const EVENTS_UPDATED_EVENT = "ease:events-updated";
+const RATINGS_KEY = "ease_event_ratings";
+
+const DEFAULT_SEAT_LAYOUT = {
+  sections: [
+    { id: "floor", label: "Floor - General", rows: 4, cols: 12, color: "#10b981", priceAdd: 0, priceLabel: "Included" },
+    { id: "lower", label: "Lower Deck - Premium", rows: 3, cols: 10, color: "#6366f1", priceAdd: 500, priceLabel: "+₹500" },
+    { id: "vip", label: "Upper Deck - VIP", rows: 2, cols: 8, color: "#f59e0b", priceAdd: 1500, priceLabel: "+₹1500" },
+  ],
 };
 
 export function adminLogin(email, password) {
@@ -19,42 +30,93 @@ export function setAdminAuth(val) {
   else localStorage.removeItem("ease_admin_auth");
 }
 
-// ── Events store ──────────────────────────────────────────────────────────────
-const EVENTS_KEY = "ease_admin_events";
+function broadcastEventsUpdate() {
+  try {
+    window.dispatchEvent(new StorageEvent("storage", { key: EVENTS_KEY }));
+    window.dispatchEvent(new CustomEvent(EVENTS_UPDATED_EVENT));
+  } catch {}
+}
+
+function normalizeSeatLayout(seatLayout = {}) {
+  const sections = Array.isArray(seatLayout.sections) && seatLayout.sections.length
+    ? seatLayout.sections
+    : DEFAULT_SEAT_LAYOUT.sections;
+
+  return {
+    sections: sections.map((section, index) => {
+      const priceAdd = Math.max(0, Number(section.priceAdd) || 0);
+      return {
+        id: section.id || `section-${index + 1}`,
+        label: section.label || `Section ${index + 1}`,
+        rows: Math.max(1, Number(section.rows) || 1),
+        cols: Math.max(1, Number(section.cols) || 1),
+        color: section.color || DEFAULT_SEAT_LAYOUT.sections[index]?.color || "#7c3aed",
+        priceAdd,
+        priceLabel: section.priceLabel || (priceAdd > 0 ? `+₹${priceAdd.toLocaleString("en-IN")}` : "Included"),
+      };
+    }),
+  };
+}
+
+function normalizeEvent(event, index = 0) {
+  return {
+    ...event,
+    id: String(event.id || Date.now() + index),
+    title: event.title || "Untitled Event",
+    category: event.category || "General",
+    location: event.location || "Venue TBA",
+    venueAddress: event.venueAddress || event.location || "",
+    date: event.date || new Date().toISOString().slice(0, 10),
+    time: event.time || "18:00",
+    price: Math.max(0, Number(event.price) || 0),
+    capacity: Math.max(1, Number(event.capacity) || 100),
+    featured: Boolean(event.featured),
+    color: event.color || "#7c3aed",
+    accent: event.accent || "#3b82f6",
+    badge: event.badge || "New Event",
+    poster: event.poster || "/events/tech-summit.png",
+    description: event.description || event.shortDescription || "",
+    shortDescription: event.shortDescription || event.description || "",
+    longDescription: event.longDescription || event.description || event.shortDescription || "",
+    organizer: event.organizer || "Ease Events",
+    seatLayout: normalizeSeatLayout(event.seatLayout),
+    iconName: event.iconName || "Calendar",
+  };
+}
 
 function serializeEvents(events) {
-  // strip non-serializable icon component
-  return events.map(({ icon, ...rest }) => ({ ...rest, iconName: icon?.displayName || "Calendar" }));
+  return events.map(({ icon, ...rest }, index) =>
+    normalizeEvent({ ...rest, iconName: icon?.displayName || "Calendar" }, index),
+  );
 }
 
 export function getStoredEvents() {
   try {
     const raw = localStorage.getItem(EVENTS_KEY);
-    if (raw) return JSON.parse(raw);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed.map((event, index) => normalizeEvent(event, index)) : [];
+    }
   } catch {}
-  // seed with default events (serialized)
+
   const seeded = serializeEvents(INDIAN_EVENTS);
   localStorage.setItem(EVENTS_KEY, JSON.stringify(seeded));
   return seeded;
 }
 
 export function saveEvents(events) {
-  localStorage.setItem(EVENTS_KEY, JSON.stringify(events));
+  const normalized = events.map((event, index) => normalizeEvent(event, index));
+  localStorage.setItem(EVENTS_KEY, JSON.stringify(normalized));
+  broadcastEventsUpdate();
 }
 
 export function addEvent(event) {
   const events = getStoredEvents();
-  const newEvent = {
+  const newEvent = normalizeEvent({
     ...event,
     id: Date.now().toString(),
-    featured: event.featured || false,
-    badge: event.badge || "🎟️ New",
-    color: event.color || "#7c3aed",
-    accent: event.accent || "#3b82f6",
-    poster: event.poster || "/events/default.png",
-    longDescription: event.longDescription || event.description || "",
     iconName: "Calendar",
-  };
+  });
   events.push(newEvent);
   saveEvents(events);
   return newEvent;
@@ -64,7 +126,7 @@ export function updateEvent(id, updates) {
   const events = getStoredEvents();
   const idx = events.findIndex((e) => e.id === id);
   if (idx === -1) return null;
-  events[idx] = { ...events[idx], ...updates };
+  events[idx] = normalizeEvent({ ...events[idx], ...updates });
   saveEvents(events);
   return events[idx];
 }
@@ -74,8 +136,23 @@ export function deleteEvent(id) {
   saveEvents(events);
 }
 
-// ── Ratings store ─────────────────────────────────────────────────────────────
-const RATINGS_KEY = "ease_event_ratings";
+export function subscribeToEvents(callback) {
+  if (typeof window === "undefined") return () => {};
+
+  const handler = (event) => {
+    if (!event || event.type === EVENTS_UPDATED_EVENT || event.key === EVENTS_KEY) {
+      callback(getStoredEvents());
+    }
+  };
+
+  window.addEventListener("storage", handler);
+  window.addEventListener(EVENTS_UPDATED_EVENT, handler);
+
+  return () => {
+    window.removeEventListener("storage", handler);
+    window.removeEventListener(EVENTS_UPDATED_EVENT, handler);
+  };
+}
 
 export function getRatings() {
   try {
@@ -110,16 +187,14 @@ export function getAverageRating(eventId) {
   return list.reduce((s, r) => s + r.stars, 0) / list.length;
 }
 
-// ── Dashboard analytics ───────────────────────────────────────────────────────
 export function getAnalytics() {
   const events = getStoredEvents();
   const now = new Date();
 
-  const current  = events.filter((e) => new Date(e.date) >= now);
-  const past     = events.filter((e) => new Date(e.date) < now);
+  const current = events.filter((e) => new Date(`${e.date}T${e.time || "00:00"}`) >= now);
+  const past = events.filter((e) => new Date(`${e.date}T${e.time || "00:00"}`) < now);
   const featured = events.filter((e) => e.featured);
 
-  // mock bookings from localStorage or generate deterministic values
   const bookings = events.map((e) => ({
     eventId: e.id,
     count: Math.floor((parseInt(e.id, 10) || 1) * 137 % 500) + 50,
@@ -131,19 +206,17 @@ export function getAnalytics() {
   }, 0);
 
   const totalBookings = bookings.reduce((s, b) => s + b.count, 0);
-
-  // monthly revenue mock
-  const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   const revenueData = months.map((month, i) => ({
     month,
-    revenue: Math.floor(Math.random() * 400000 + 80000),
-    bookings: Math.floor(Math.random() * 300 + 50),
+    revenue: 120000 + ((i + 3) * 47321) % 320000,
+    bookings: 60 + ((i + 7) * 37) % 220,
   }));
 
   return {
-    totalEvents:   events.length,
+    totalEvents: events.length,
     currentEvents: current.length,
-    pastEvents:    past.length,
+    pastEvents: past.length,
     featuredEvents: featured.length,
     totalBookings,
     totalRevenue,
