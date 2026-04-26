@@ -62,8 +62,12 @@ for (const method of ['log', 'info', 'warn', 'error', 'debug'] as const) {
   };
 }
 
+if (!process.env.DATABASE_URL) {
+  console.warn('WARNING: DATABASE_URL is not set. Database operations will fail.');
+}
+
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
+  connectionString: process.env.DATABASE_URL || '',
 });
 const adapter = NeonAdapter(pool);
 
@@ -111,11 +115,11 @@ for (const method of ['post', 'put', 'patch'] as const) {
   );
 }
 
-if (process.env.AUTH_SECRET) {
+if (process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET) {
   app.use(
     '*',
     initAuthConfig((c) => ({
-      secret: c.env.AUTH_SECRET,
+      secret: c.env?.AUTH_SECRET || process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
       basePath: AUTH_BASE_PATH,
       trustHost: true,
       pages: {
