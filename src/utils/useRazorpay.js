@@ -42,15 +42,15 @@ const useRazorpay = () => {
       }
 
       // 2. Configure Razorpay options
-      const razorpayKey = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || '';
-      if (!razorpayKey) {
+      const { RAZORPAY_KEY_ID } from './env';
+      if (!RAZORPAY_KEY_ID) {
         toast.error('Razorpay key is missing');
         if (onFailure) onFailure();
         return;
       }
 
       const options = {
-        key: razorpayKey,
+        key: RAZORPAY_KEY_ID,
         amount: order.amount,
         currency: order.currency,
         name: 'SpoySync',

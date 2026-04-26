@@ -1,7 +1,8 @@
 import { addEvent, getStoredEvents, saveEvents, updateEvent, deleteEvent as deleteStoredEvent } from "./adminStore";
+import { API_BASE_URL } from "./env";
 
 function getApiBase() {
-  return import.meta.env.NEXT_PUBLIC_API_URL || "";
+  return API_BASE_URL;
 }
 
 function mapApiEvent(event) {

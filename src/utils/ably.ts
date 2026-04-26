@@ -48,11 +48,12 @@ class LocalRealtimeChannel {
   }
 }
 
+import { ABLY_API_KEY } from "./env";
+
 export const getAblyClient = () => {
   if (!ably && typeof window !== "undefined") {
-    const apiKey = import.meta.env.NEXT_PUBLIC_ABLY_API_KEY;
-    if (apiKey && apiKey !== "YOUR_ABLY_API_KEY") {
-      ably = new Ably.Realtime(apiKey);
+    if (ABLY_API_KEY && ABLY_API_KEY !== "YOUR_ABLY_API_KEY") {
+      ably = new Ably.Realtime(ABLY_API_KEY);
     }
   }
   return ably;
