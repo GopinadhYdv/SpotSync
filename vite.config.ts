@@ -20,7 +20,7 @@ export default defineConfig({
     target: 'es2022',
   },
   ssr: {
-    external: ['utf-8-validate', 'bufferutil', 'supports-color', 'cloudflare:workers'],
+    external: ['utf-8-validate', 'bufferutil', 'supports-color', 'cloudflare:workers', 'clean-stack'],
     noExternal: ['react-router-hono-server'],
   },
   optimizeDeps: {
