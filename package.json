@@ -10,7 +10,7 @@
 		"dev": "react-router dev",
 		"build": "npx react-router build",
 		"typecheck": "react-router typegen && tsc --noEmit",
-		"start": "node build/server/index.js",
+		"start": "node scripts/start-production.mjs",
 		"preview": "npm run build && npm start"
 	},
 	"dependencies": {

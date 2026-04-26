@@ -19,7 +19,7 @@ function mapDbEvent(event) {
     description: event.short_description || event.description || "",
     shortDescription: event.short_description || event.description || "",
     longDescription: event.long_description || event.description || "",
-    organizer: event.organizer || "Ease Events",
+    organizer: event.organizer || "SpoySync",
     seatLayout: event.seat_layout || null,
   };
 }
@@ -126,7 +126,7 @@ export async function POST(request) {
         ${body.badge || "New Event"},
         ${body.color || "#7c3aed"},
         ${body.accent || "#3b82f6"},
-        ${body.organizer || "Ease Events"},
+        ${body.organizer || "SpoySync"},
         ${JSON.stringify(body.seatLayout || null)}::jsonb
       )
       RETURNING *
@@ -170,7 +170,7 @@ export async function PUT(request) {
         badge = ${body.badge || "New Event"},
         color = ${body.color || "#7c3aed"},
         accent = ${body.accent || "#3b82f6"},
-        organizer = ${body.organizer || "Ease Events"},
+        organizer = ${body.organizer || "SpoySync"},
         seat_layout = ${JSON.stringify(body.seatLayout || null)}::jsonb
       WHERE id = ${id}
       RETURNING *

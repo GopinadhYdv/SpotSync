@@ -4,6 +4,11 @@ import { toast } from 'sonner';
 const useRazorpay = () => {
   const loadRazorpay = useCallback(() => {
     return new Promise((resolve) => {
+      if (window.Razorpay) {
+        resolve(true);
+        return;
+      }
+
       const script = document.createElement('script');
       script.src = 'https://checkout.razorpay.com/v1/checkout.js';
       script.onload = () => resolve(true);
@@ -14,6 +19,13 @@ const useRazorpay = () => {
 
   const processPayment = useCallback(async ({ amount, eventTitle, userName, userEmail, userContact, onSuccess, onFailure }) => {
     try {
+      const loaded = await loadRazorpay();
+      if (!loaded || !window.Razorpay) {
+        toast.error('Razorpay checkout failed to load');
+        if (onFailure) onFailure();
+        return;
+      }
+
       // 1. Create order on the server
       const response = await fetch('/api/razorpay/create-order', {
         method: 'POST',
@@ -30,11 +42,18 @@ const useRazorpay = () => {
       }
 
       // 2. Configure Razorpay options
+      const razorpayKey = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || '';
+      if (!razorpayKey) {
+        toast.error('Razorpay key is missing');
+        if (onFailure) onFailure();
+        return;
+      }
+
       const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || '', // Enter the Key ID generated from the Dashboard
+        key: razorpayKey,
         amount: order.amount,
         currency: order.currency,
-        name: 'Ease Events',
+        name: 'SpoySync',
         description: `Ticket for ${eventTitle}`,
         order_id: order.id,
         handler: async function (response) {
@@ -80,7 +99,7 @@ const useRazorpay = () => {
       toast.error('An error occurred during payment');
       if (onFailure) onFailure();
     }
-  }, []);
+  }, [loadRazorpay]);
 
   return { processPayment };
 };

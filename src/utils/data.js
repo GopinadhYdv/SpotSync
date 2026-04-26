@@ -99,3 +99,25 @@ export const INDIAN_EVENTS = [
     longDescription: "Embark on a culinary journey across India without leaving Chennai! The India Food Mela 2026 brings together authentic cuisines, street food gems, and royal delicacies from all 28 states. From fiery Chettinad dishes to rich Awadhi kebabs, experience diverse flavors through 500+ food stalls. Attend masterclasses by Michelin-starred chefs, enjoy cultural performances, and indulge in a gastronomic paradise.",
   },
 ];
+
+export function getDefaultEvents() {
+  return INDIAN_EVENTS.map(({ icon, ...event }, index) => ({
+    ...event,
+    id: String(event.id || index + 1),
+    venueAddress: event.location,
+    time: event.time || "18:00",
+    capacity: event.capacity || 100,
+    featured: Boolean(event.featured ?? index < 3),
+    organizer: event.organizer || "SpoySync",
+    shortDescription: event.shortDescription || event.description || "",
+    longDescription: event.longDescription || event.description || "",
+    seatLayout: event.seatLayout || {
+      sections: [
+        { id: "floor", label: "Floor - General", rows: 4, cols: 12, color: "#10b981", priceAdd: 0, priceLabel: "Included" },
+        { id: "lower", label: "Lower Deck - Premium", rows: 3, cols: 10, color: "#6366f1", priceAdd: 500, priceLabel: "+₹500" },
+        { id: "vip", label: "Upper Deck - VIP", rows: 2, cols: 8, color: "#f59e0b", priceAdd: 1500, priceLabel: "+₹1500" },
+      ],
+    },
+    iconName: icon?.displayName || "Calendar",
+  }));
+}

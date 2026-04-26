@@ -28,7 +28,17 @@ const AUTH_BASE_PATH = '/api/auth';
 
 function normalizeAuthUrl(value?: string | null, fallbackOrigin?: string) {
   const raw = value?.trim();
-  const base = raw || fallbackOrigin;
+  const shouldIgnoreRaw =
+    raw != null &&
+    (() => {
+      try {
+        const parsed = new URL(raw);
+        return ['localhost', '127.0.0.1', '0.0.0.0'].includes(parsed.hostname);
+      } catch {
+        return false;
+      }
+    })();
+  const base = !shouldIgnoreRaw && raw ? raw : fallbackOrigin;
   if (!base) return undefined;
 
   const url = new URL(base);

@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import Navbar from "../../../components/Navbar";
 import { motion } from "motion/react";
-import { Zap, AlertCircle } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import useAuth from "../../../utils/useAuth";
 import useUser from "../../../utils/useUser";
 import { useNavigate } from "react-router-dom";
+import BrandLogo, { BRAND_NAME } from "../../../components/BrandLogo";
 
 export default function SignInPage() {
   const { signInWithGoogle } = useAuth();
@@ -41,23 +42,20 @@ export default function SignInPage() {
           className="w-full max-w-md bg-[#0f0f15] p-8 rounded-3xl border border-white/5 shadow-2xl relative overflow-hidden"
         >
           {/* Decorative glow */}
-          <div className="absolute -top-20 -right-20 w-40 h-40 bg-purple-500/20 blur-3xl rounded-full" />
-          <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-cyan-500/20 blur-3xl rounded-full" />
+          <div className="absolute -top-20 -right-20 w-40 h-40 bg-cyan-500/20 blur-3xl rounded-full" />
+          <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-emerald-500/20 blur-3xl rounded-full" />
 
           <div className="relative z-10 flex flex-col items-center">
-            {/* Logo */}
-            <div
-              className="w-16 h-16 rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(99,102,241,0.3)] mb-6"
-              style={{ background: "linear-gradient(135deg, #7c3aed, #06b6d4)" }}
-            >
-              <Zap className="text-white w-8 h-8" fill="white" />
-            </div>
-
-            <h2 className="text-3xl font-black mb-2 text-center text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-cyan-400">
-              Welcome to Ease Events
-            </h2>
+            <BrandLogo
+              to={null}
+              className="mb-6 flex-col gap-4"
+              markClassName="h-16 w-16"
+              iconClassName="h-8 w-8"
+              wordmarkClassName="text-3xl"
+              showTagline={true}
+            />
             <p className="text-gray-400 text-center mb-8">
-              Sign in to book tickets, manage your wishlist, and access your exclusive dashboard.
+              Sign in to book tickets, sync your plans, and manage everything in one {BRAND_NAME} account.
             </p>
 
             {error && (

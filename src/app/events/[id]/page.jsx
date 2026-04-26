@@ -10,6 +10,7 @@ import PaymentModal from "../../../components/PaymentModal";
 import { getStoredEvents, addRating, getEventRatings, getAverageRating, subscribeToEvents } from "../../../utils/adminStore";
 import { isWishlisted, toggleWishlist } from "../../../utils/accountStore";
 import { loadEvents } from "../../../utils/eventService";
+import { getDefaultEvents } from "../../../utils/data";
 import { toast } from "sonner";
 
 export default function EventDetailsPage() {
@@ -24,7 +25,8 @@ export default function EventDetailsPage() {
 
   useEffect(() => {
     const syncEvent = (events = getStoredEvents()) => {
-      const ev = events.find((item) => String(item.id) === String(id));
+      const sourceEvents = events?.length ? events : getDefaultEvents();
+      const ev = sourceEvents.find((item) => String(item.id) === String(id));
       setEvent(ev || null);
       if (ev) {
         setReviews(getEventRatings(ev.id));

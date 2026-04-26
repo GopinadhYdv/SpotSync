@@ -646,7 +646,7 @@ function ETicket({ phase }) {
               </div>
             </div>
 
-            {/* EaseEvents branding */}
+            {/* SpoySync branding */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -661,7 +661,7 @@ function ETicket({ phase }) {
               }}
             >
               <span style={{ fontSize: 11, fontWeight: 900, color: "rgba(255,255,255,0.3)", letterSpacing: "0.1em", fontStyle: "italic" }}>
-                EaseEvents
+                SpoySync
               </span>
               <span style={{ fontSize: 9, color: "rgba(255,255,255,0.2)", letterSpacing: "0.08em" }}>
                 POWERED BY EASE
@@ -760,7 +760,7 @@ function SmartphoneFrame({ children, phase }) {
               transition={{ delay: 0.2 }}
               style={{ fontSize: 11, fontWeight: 700, color: "rgba(168,85,247,0.8)", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 2 }}
             >
-              ✦ EaseEvents
+              ✦ SpoySync
             </motion.div>
             <motion.div
               initial={{ opacity: 0, y: -5 }}

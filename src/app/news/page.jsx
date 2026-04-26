@@ -3,6 +3,7 @@ import Navbar from "../../components/Navbar";
 import { motion } from "motion/react";
 import { Newspaper, ChevronRight, Clock, User } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import { BRAND_NAME } from "../../components/BrandLogo";
 
 export default function NewsPage() {
   const { data: news, isLoading } = useQuery({
@@ -32,7 +33,7 @@ export default function NewsPage() {
             transition={{ delay: 0.1 }}
             className="text-6xl font-black tracking-tighter mb-6 italic"
           >
-            EaseEvents News
+            {BRAND_NAME} News
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -40,8 +41,8 @@ export default function NewsPage() {
             transition={{ delay: 0.2 }}
             className="text-xl text-gray-500 leading-relaxed"
           >
-            The latest stories, industry shifts, and exclusive event
-            announcements from our global network.
+            Product updates, industry shifts, and event intelligence from the
+            teams shaping live experiences.
           </motion.p>
         </header>
 
@@ -97,7 +98,7 @@ export default function NewsPage() {
                     </div>
                     <p className="text-gray-400 text-lg leading-relaxed mb-8 max-w-3xl">
                       {item.content ||
-                        "The event industry is seeing a massive shift towards hybrid experiences. EaseEvents is leading the charge by integrating cinematic live streams with physical attendance..."}
+                        `${BRAND_NAME} is tracking how live events are getting faster, smarter, and more connected across discovery, booking, and attendee ops.`}
                     </p>
                     <button className="flex items-center text-silver-400 font-black hover:text-white transition-all uppercase tracking-widest text-sm">
                       Read Full Article{" "}
@@ -144,8 +145,8 @@ export default function NewsPage() {
                     Stay Updated
                   </h3>
                   <p className="text-gray-400 text-sm mb-8 leading-relaxed">
-                    Join 50k+ event enthusiasts getting our weekly cinematic
-                    insights.
+                    Join 50k+ readers getting weekly notes on live event trends,
+                    platform updates, and standout launches.
                   </p>
                   <input
                     type="email"

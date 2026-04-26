@@ -2,27 +2,28 @@ import React from "react";
 import Navbar from "../../components/Navbar";
 import { motion } from "motion/react";
 import { Users, Shield, Award, Sparkles } from "lucide-react";
+import { BRAND_NAME } from "../../components/BrandLogo";
 
 export default function AboutPage() {
   const values = [
     {
       name: "Innovation",
-      desc: "Pushing the boundaries of event technology.",
+      desc: "Designing faster, clearer ways to coordinate live experiences.",
       icon: Sparkles,
     },
     {
       name: "Community",
-      desc: "Bringing people together through shared passions.",
+      desc: "Helping audiences, organizers, and crews move together in sync.",
       icon: Users,
     },
     {
       name: "Excellence",
-      desc: "Setting the cinematic standard for event management.",
+      desc: "Raising the bar for booking, updates, and check-in experiences.",
       icon: Award,
     },
     {
       name: "Security",
-      desc: "Your data and bookings are protected by elite systems.",
+      desc: "Protecting your identity, payments, and passes with care.",
       icon: Shield,
     },
   ];
@@ -39,7 +40,7 @@ export default function AboutPage() {
             animate={{ opacity: 1, y: 0 }}
             className="text-7xl md:text-9xl font-black tracking-tighter mb-8 italic"
           >
-            Redefining <span className="text-silver-400">Connection.</span>
+            Making Live Events <span className="text-cyan-300">Flow Better.</span>
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -47,8 +48,8 @@ export default function AboutPage() {
             transition={{ delay: 0.2 }}
             className="text-xl md:text-2xl text-gray-500 max-w-3xl mx-auto leading-relaxed"
           >
-            EaseEvents is the world's premier cinematic platform for
-            discovering, booking, and managing high-tier global events.
+            {BRAND_NAME} is built to keep discovery, booking, communication, and entry
+            in sync for every live event moment.
           </motion.p>
         </div>
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-silver-400/5 rounded-full blur-[120px] pointer-events-none" />
@@ -66,13 +67,12 @@ export default function AboutPage() {
               The Vision
             </span>
             <h2 className="text-5xl font-black tracking-tight mb-8">
-              Our Mission is to Bridge the Gap Between Digital and Physical.
+              Our mission is to remove the messy gaps between planning and showing up.
             </h2>
             <p className="text-gray-400 text-lg leading-relaxed mb-8">
-              We believe every event should be a cinematic experience. From the
-              first click to the moment you walk through the venue doors,
-              EaseEvents provides a seamless, high-performance journey for both
-              organizers and attendees.
+              We believe great event software should feel invisible. From the first
+              browse to the final gate scan, {BRAND_NAME} gives organizers and attendees
+              one shared source of truth.
             </p>
           </motion.div>
           <motion.div

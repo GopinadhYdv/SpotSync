@@ -1,4 +1,4 @@
-import { INDIAN_EVENTS } from "./data.js";
+import { INDIAN_EVENTS, getDefaultEvents } from "./data.js";
 
 export const ADMIN_CREDENTIALS = {
   email: "admin359@gmail.com",
@@ -78,7 +78,7 @@ function normalizeEvent(event, index = 0) {
     description: event.description || event.shortDescription || "",
     shortDescription: event.shortDescription || event.description || "",
     longDescription: event.longDescription || event.description || event.shortDescription || "",
-    organizer: event.organizer || "Ease Events",
+    organizer: event.organizer || "SpoySync",
     seatLayout: normalizeSeatLayout(event.seatLayout),
     iconName: event.iconName || "Calendar",
   };
@@ -100,8 +100,10 @@ export function getStoredEvents() {
   } catch {}
 
   const seeded = serializeEvents(INDIAN_EVENTS);
-  localStorage.setItem(EVENTS_KEY, JSON.stringify(seeded));
-  return seeded;
+  try {
+    localStorage.setItem(EVENTS_KEY, JSON.stringify(seeded));
+  } catch {}
+  return seeded.length ? seeded : getDefaultEvents().map((event, index) => normalizeEvent(event, index));
 }
 
 export function saveEvents(events) {

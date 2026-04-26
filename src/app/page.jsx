@@ -16,8 +16,10 @@ import {
   Landmark,
 } from "lucide-react";
 import Navbar from "../components/Navbar";
+import BrandLogo, { BRAND_NAME } from "../components/BrandLogo";
 import { getStoredEvents, subscribeToEvents } from "../utils/adminStore";
 import { loadEvents } from "../utils/eventService";
+import { getDefaultEvents } from "../utils/data";
 // ── 3D Hexagonal Prism Cube Component ────────────────────────────────────────
 function HexagonalCube({ events, currentFace, onFaceClick }) {
   const radius = 260; // translateZ distance for each face
@@ -177,7 +179,7 @@ function FloatingParticles() {
       {particles.map((p) => (
         <motion.div
           key={p.id}
-          className="absolute rounded-full bg-purple-400/25"
+          className="absolute rounded-full bg-cyan-300/20"
           style={{ left: p.left, top: p.top, width: p.size, height: p.size }}
           animate={{ y: [0, -120, 0], opacity: [0.1, 0.7, 0.1], scale: [1, 1.8, 1] }}
           transition={{ duration: p.duration, repeat: Infinity, delay: p.delay }}
@@ -294,14 +296,25 @@ function EventCard({ event, index }) {
 }
 
 export default function HomePage() {
-  const [events, setEvents] = useState([]);
+  const [events, setEvents] = useState(() => getDefaultEvents());
   const [currentFace, setCurrentFace] = useState(0);
   const [activeFaceIdx, setActiveFaceIdx] = useState(0);
 
   useEffect(() => {
-    setEvents(getStoredEvents() || []);
-    loadEvents().then((nextEvents) => setEvents(nextEvents || []));
-    return subscribeToEvents((nextEvents) => setEvents(nextEvents || []));
+    const cachedEvents = getStoredEvents();
+    if (cachedEvents?.length) {
+      setEvents(cachedEvents);
+    }
+    loadEvents().then((nextEvents) => {
+      if (nextEvents?.length) {
+        setEvents(nextEvents);
+      }
+    });
+    return subscribeToEvents((nextEvents) => {
+      if (nextEvents?.length) {
+        setEvents(nextEvents);
+      }
+    });
   }, []);
 
   // Auto-rotate every 3.5s
@@ -326,7 +339,7 @@ export default function HomePage() {
   if (!activeEvent) {
     return (
       <div className="min-h-screen text-white flex items-center justify-center" style={{ background: "#060608" }}>
-        Loading experiences...
+        Loading the live board...
       </div>
     );
   }
@@ -355,11 +368,11 @@ export default function HomePage() {
         {/* Ambient Glows */}
         <div
           className="absolute top-0 left-1/4 w-[600px] h-[600px] rounded-full blur-[120px] pointer-events-none"
-          style={{ background: "radial-gradient(ellipse, #6d28d944 0%, transparent 70%)" }}
+          style={{ background: "radial-gradient(ellipse, rgba(34,211,238,0.22) 0%, transparent 70%)" }}
         />
         <div
           className="absolute bottom-0 right-1/4 w-[500px] h-[500px] rounded-full blur-[100px] pointer-events-none"
-          style={{ background: "radial-gradient(ellipse, #1d4ed833 0%, transparent 70%)" }}
+          style={{ background: "radial-gradient(ellipse, rgba(34,197,94,0.16) 0%, transparent 70%)" }}
         />
 
         <FloatingParticles />
@@ -381,13 +394,13 @@ export default function HomePage() {
                 transition={{ delay: 0.5 }}
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-full border backdrop-blur-md"
                 style={{
-                  background: "rgba(109,40,217,0.15)",
-                  borderColor: "rgba(139,92,246,0.4)",
+                  background: "rgba(13,148,136,0.14)",
+                  borderColor: "rgba(45,212,191,0.35)",
                 }}
               >
-                <Sparkles size={14} className="text-purple-400" />
-                <span className="text-xs font-bold tracking-widest uppercase bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
-                  India's #1 Real-Time Event Platform
+                <Sparkles size={14} className="text-cyan-300" />
+                <span className="text-xs font-bold tracking-widest uppercase bg-gradient-to-r from-cyan-300 to-emerald-300 bg-clip-text text-transparent">
+                  Real-Time Event Sync Across India
                 </span>
               </motion.div>
 
@@ -402,17 +415,17 @@ export default function HomePage() {
                   <span
                     className="bg-clip-text text-transparent"
                     style={{
-                      backgroundImage: `linear-gradient(135deg, ${activeEvent.color}, ${activeEvent.accent}, #818cf8)`,
+                      backgroundImage: `linear-gradient(135deg, ${activeEvent.color}, ${activeEvent.accent}, #6ee7b7)`,
                       transition: "background-image 0.8s ease",
                     }}
                   >
-                    Epic Events
+                    In-Sync Moments
                   </span>
                 </h1>
                 <p className="text-lg text-gray-400 leading-relaxed max-w-lg">
-                  Discover India's most extraordinary live experiences — concerts, tech
-                  summits, cultural festivals & more. Book instantly, track in real-time,
-                  and never miss a moment.
+                  {BRAND_NAME} keeps discovery, booking, updates, and entry passes in one
+                  live stream. From concerts to sports nights and cultural festivals, your
+                  next plan stays perfectly synced.
                 </p>
               </div>
 
@@ -422,8 +435,8 @@ export default function HomePage() {
                   to="/events"
                   className="group flex items-center justify-center px-8 py-4 rounded-xl font-black transition-all text-white text-base"
                   style={{
-                    background: `linear-gradient(135deg, #7c3aed, #2563eb)`,
-                    boxShadow: "0 0 40px rgba(124,58,237,0.35)",
+                    background: "linear-gradient(135deg, #0f766e, #22c55e)",
+                    boxShadow: "0 0 40px rgba(20,184,166,0.28)",
                   }}
                 >
                   Explore Events
@@ -483,7 +496,7 @@ export default function HomePage() {
                     transition={{ delay: 0.8 + idx * 0.1 }}
                   >
                     <div className="flex items-center mb-1">
-                      <stat.icon size={14} className="text-purple-400 mr-2" />
+                      <stat.icon size={14} className="text-cyan-300 mr-2" />
                       <div className="text-2xl font-black">{stat.value}</div>
                     </div>
                     <div className="text-xs text-gray-500 uppercase tracking-wider">{stat.label}</div>
@@ -548,7 +561,7 @@ export default function HomePage() {
             <motion.div
               animate={{ y: [0, 10, 0] }}
               transition={{ duration: 1.5, repeat: Infinity }}
-              className="w-1 h-1 bg-purple-500 rounded-full"
+              className="w-1 h-1 bg-cyan-300 rounded-full"
             />
           </div>
         </motion.div>
@@ -561,8 +574,8 @@ export default function HomePage() {
         style={{ background: "linear-gradient(to bottom, #060608, #040406)" }}
       >
         {/* Decorative glows */}
-        <div className="absolute top-0 left-0 w-80 h-80 bg-purple-700/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 right-0 w-80 h-80 bg-blue-700/10 rounded-full blur-3xl" />
+        <div className="absolute top-0 left-0 w-80 h-80 bg-cyan-700/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 right-0 w-80 h-80 bg-emerald-700/10 rounded-full blur-3xl" />
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-end mb-14">
@@ -573,11 +586,11 @@ export default function HomePage() {
                 viewport={{ once: true }}
                 className="inline-flex items-center gap-2 px-3 py-1 rounded-full mb-4 border backdrop-blur-md"
                 style={{
-                  background: "rgba(109,40,217,0.15)",
-                  borderColor: "rgba(139,92,246,0.35)",
+                  background: "rgba(13,148,136,0.14)",
+                  borderColor: "rgba(45,212,191,0.3)",
                 }}
               >
-                <TrendingUp size={12} className="text-purple-400" />
+                <TrendingUp size={12} className="text-cyan-300" />
                 <span className="text-xs font-bold tracking-widest uppercase text-white/70">
                   Trending Now
                 </span>
@@ -586,12 +599,12 @@ export default function HomePage() {
                 Featured Events
               </h2>
               <p className="text-gray-500 max-w-md text-base">
-                Handpicked premium Indian experiences. Book early to secure your exclusive access.
+                Handpicked live experiences with fast booking, ticket sync, and smoother check-in.
               </p>
             </div>
             <Link
               to="/events"
-              className="hidden md:flex items-center text-purple-400 hover:text-purple-300 transition-colors font-bold text-sm group"
+              className="hidden md:flex items-center text-cyan-300 hover:text-cyan-200 transition-colors font-bold text-sm group"
             >
               View All
               <ChevronRight size={16} className="ml-1 group-hover:translate-x-1 transition-transform" />
@@ -610,7 +623,7 @@ export default function HomePage() {
       <section className="py-32 relative overflow-hidden">
         <div
           className="absolute inset-0"
-          style={{ background: "linear-gradient(135deg, #1a0533 0%, #060608 50%, #001233 100%)" }}
+          style={{ background: "linear-gradient(135deg, #032b31 0%, #060608 50%, #052e16 100%)" }}
         />
         <div
           className="absolute inset-0 opacity-8"
@@ -627,22 +640,22 @@ export default function HomePage() {
             viewport={{ once: true }}
           >
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-8 border backdrop-blur-md"
-              style={{ background: "rgba(109,40,217,0.15)", borderColor: "rgba(139,92,246,0.4)" }}>
-              <Sparkles size={14} className="text-purple-400" />
-              <span className="text-xs font-bold tracking-widest uppercase text-purple-300">
-                Thousands of events await
+              style={{ background: "rgba(13,148,136,0.14)", borderColor: "rgba(45,212,191,0.35)" }}>
+              <Sparkles size={14} className="text-cyan-300" />
+              <span className="text-xs font-bold tracking-widest uppercase text-cyan-200">
+                Your next plan is waiting
               </span>
             </div>
             <h2 className="text-5xl md:text-6xl font-black mb-6 tracking-tight leading-tight">
-              Ready to Experience
+              Ready to Stay
               <br />
-              <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent">
-                Something Extraordinary?
+              <span className="bg-gradient-to-r from-cyan-300 via-teal-300 to-emerald-300 bg-clip-text text-transparent">
+                Perfectly In Sync?
               </span>
             </h2>
             <p className="text-gray-400 text-lg mb-14 max-w-xl mx-auto leading-relaxed">
-              Join thousands of event enthusiasts discovering India's premium experiences.
-              Your next unforgettable moment awaits.
+              Join thousands of fans using {BRAND_NAME} to discover, book, and manage
+              standout experiences without the usual friction.
             </p>
             <Link
               to="/events"
@@ -662,34 +675,24 @@ export default function HomePage() {
       >
         <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-12">
           <div className="col-span-1 md:col-span-2">
-            <h3
-              className="text-3xl font-black mb-4 tracking-tight"
-              style={{
-                background: "linear-gradient(135deg, #a78bfa, #67e8f9)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-                backgroundClip: "text",
-              }}
-            >
-              Ease Events
-            </h3>
+            <BrandLogo to="/" markClassName="h-11 w-11" iconClassName="h-5 w-5" wordmarkClassName="text-3xl" className="mb-4" />
             <p className="text-gray-500 max-w-sm leading-relaxed text-sm">
-              India's real-time event booking platform. Discover, explore, and secure your
-              spot at the most exclusive experiences across the nation.
+              A modern event booking platform built for fast discovery, live updates,
+              and ticketing that stays in sync from checkout to entry.
             </p>
           </div>
           <div>
             <h4 className="text-xs font-bold uppercase tracking-widest mb-5 text-white/50">Navigation</h4>
             <ul className="space-y-3 text-gray-500 text-sm">
-              {[
+              {[ 
                 { label: "Events Directory", href: "/events" },
                 { label: "Latest News", href: "/news" },
                 { label: "About Us", href: "/about" },
               ].map((link) => (
                 <li key={link.label}>
-                  <a href={link.href} className="hover:text-white transition-colors">
+                  <Link to={link.href} className="hover:text-white transition-colors">
                     {link.label}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -709,7 +712,7 @@ export default function HomePage() {
           className="max-w-7xl mx-auto px-4 mt-16 pt-8 border-t flex flex-col md:flex-row justify-between items-center gap-4 text-gray-600 text-xs"
           style={{ borderColor: "rgba(255,255,255,0.05)" }}
         >
-          <p>© 2026 Ease Events. All rights reserved.</p>
+          <p>© 2026 {BRAND_NAME}. All rights reserved.</p>
           <div className="flex gap-8">
             <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
             <a href="#" className="hover:text-white transition-colors">Terms of Service</a>

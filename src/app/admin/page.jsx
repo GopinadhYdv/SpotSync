@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, Calendar, Users, Ticket, TrendingUp, Settings, LogOut,
   Plus, Edit, Trash2, Star, DollarSign, User, ShieldAlert, X
@@ -14,6 +14,7 @@ import {
   getEventRatings, subscribeToEvents
 } from "../../utils/adminStore";
 import { createRemoteEvent, deleteRemoteEvent, loadEvents, updateRemoteEvent } from "../../utils/eventService";
+import { BRAND_NAME } from "../../components/BrandLogo";
 
 const defaultEventForm = () => ({
   title: "",
@@ -24,7 +25,7 @@ const defaultEventForm = () => ({
   time: "18:00",
   price: 0,
   capacity: 100,
-  organizer: "Ease Events",
+  organizer: BRAND_NAME,
   badge: "New Event",
   color: "#7c3aed",
   accent: "#3b82f6",
@@ -236,7 +237,10 @@ export default function AdminDashboard() {
           <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center">
             <Calendar className="text-black w-6 h-6" />
           </div>
-          <span className="text-xl font-black tracking-tight italic">EaseAdmin</span>
+          <div className="flex flex-col">
+            <span className="text-xl font-black tracking-tight">SpoySync Admin</span>
+            <span className="text-[10px] uppercase tracking-[0.22em] text-cyan-200/50">Operations</span>
+          </div>
         </div>
 
         <nav className="flex-1 space-y-2">
@@ -262,10 +266,10 @@ export default function AdminDashboard() {
         </nav>
 
         <div className="pt-6 border-t border-white/5 space-y-2">
-          <a href="/" className="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-500 hover:text-white transition-all">
+          <Link to="/" className="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-500 hover:text-white transition-all">
             <LayoutDashboard size={20} />
             <span>View Public Site</span>
-          </a>
+          </Link>
           <button onClick={handleLogout} className="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-red-500 hover:bg-red-500/10 transition-all text-left">
             <LogOut size={20} />
             <span>Logout</span>
@@ -283,7 +287,7 @@ export default function AdminDashboard() {
               {activeTab === 'ratings' && 'Guest Ratings'}
             </h1>
             <p className="text-gray-500">
-              {activeTab === 'overview' && 'Monitor your event ecosystem performance and metrics.'}
+              {activeTab === 'overview' && 'Monitor platform activity, ticketing movement, and event performance.'}
               {activeTab === 'events' && 'Create, edit, and categorize your events.'}
               {activeTab === 'ratings' && 'View what guests are saying about past events.'}
             </p>
@@ -300,7 +304,7 @@ export default function AdminDashboard() {
             <div className="flex items-center space-x-3 bg-white/5 border border-white/10 p-2 rounded-2xl">
               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-600 flex items-center justify-center font-bold">A</div>
               <div className="text-xs pr-2">
-                <p className="font-bold">Admin User</p>
+                <p className="font-bold">{BRAND_NAME} Admin</p>
                 <p className="text-gray-500">Superuser</p>
               </div>
             </div>

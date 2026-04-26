@@ -59,6 +59,47 @@ CREATE TABLE IF NOT EXISTS bookings (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+CREATE TABLE IF NOT EXISTS auth_users (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT,
+  email TEXT UNIQUE,
+  "emailVerified" TIMESTAMPTZ,
+  image TEXT
+);
+
+CREATE TABLE IF NOT EXISTS auth_accounts (
+  id BIGSERIAL PRIMARY KEY,
+  "userId" UUID NOT NULL REFERENCES auth_users(id) ON DELETE CASCADE,
+  type TEXT NOT NULL,
+  provider TEXT NOT NULL,
+  "providerAccountId" TEXT NOT NULL,
+  refresh_token TEXT,
+  access_token TEXT,
+  expires_at BIGINT,
+  token_type TEXT,
+  scope TEXT,
+  id_token TEXT,
+  session_state TEXT,
+  password TEXT,
+  UNIQUE (provider, "providerAccountId")
+);
+
+CREATE TABLE IF NOT EXISTS auth_sessions (
+  id BIGSERIAL PRIMARY KEY,
+  "sessionToken" TEXT NOT NULL UNIQUE,
+  "userId" UUID NOT NULL REFERENCES auth_users(id) ON DELETE CASCADE,
+  expires TIMESTAMPTZ NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS auth_verification_token (
+  identifier TEXT NOT NULL,
+  expires TIMESTAMPTZ NOT NULL,
+  token TEXT NOT NULL,
+  PRIMARY KEY (identifier, token)
+);
+
 CREATE TABLE IF NOT EXISTS seats (
   id BIGSERIAL PRIMARY KEY,
   event_id BIGINT REFERENCES events(id) ON DELETE CASCADE,

@@ -21,17 +21,29 @@ import Navbar from "../../components/Navbar";
 import { cn } from "../../utils/cn";
 import { getStoredEvents, subscribeToEvents } from "../../utils/adminStore";
 import { loadEvents } from "../../utils/eventService";
+import { getDefaultEvents } from "../../utils/data";
 export default function EventsPage() {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("");
   const [view, setView] = useState("grid");
 
-  const [events, setEvents] = useState([]);
+  const [events, setEvents] = useState(() => getDefaultEvents());
   
   React.useEffect(() => {
-    setEvents(getStoredEvents());
-    loadEvents().then((nextEvents) => setEvents(nextEvents || []));
-    return subscribeToEvents((nextEvents) => setEvents(nextEvents || []));
+    const cachedEvents = getStoredEvents();
+    if (cachedEvents?.length) {
+      setEvents(cachedEvents);
+    }
+    loadEvents().then((nextEvents) => {
+      if (nextEvents?.length) {
+        setEvents(nextEvents);
+      }
+    });
+    return subscribeToEvents((nextEvents) => {
+      if (nextEvents?.length) {
+        setEvents(nextEvents);
+      }
+    });
   }, []);
 
   // Filtering Logic

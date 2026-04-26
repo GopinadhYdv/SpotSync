@@ -23,7 +23,7 @@ function mapApiEvent(event) {
     description: event.description || event.shortDescription || "",
     shortDescription: event.shortDescription || event.short_description || event.description || "",
     longDescription: event.longDescription || event.long_description || event.description || "",
-    organizer: event.organizer || "Ease Events",
+    organizer: event.organizer || "SpoySync",
     seatLayout: event.seatLayout || event.seat_layout,
     iconName: event.iconName || "Calendar",
   };
