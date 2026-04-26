@@ -1,5 +1,4 @@
 import { Auth } from '@auth/core';
-import { createAuthConfig } from '../../../../../api/_lib/auth-config.js';
 import { normalizeAuthUrl } from '../../../../../api/_lib/env.js';
 
 function resolveAuthUrl(request) {
@@ -9,16 +8,36 @@ function resolveAuthUrl(request) {
 
 async function handleAuth(request) {
   try {
+    // Dynamically import to avoid initialization errors
+    const { createAuthConfig } = await import('../../../../../api/_lib/auth-config.js');
+    
     process.env.AUTH_URL = resolveAuthUrl(request);
-    return await Auth(request, createAuthConfig());
+    const config = createAuthConfig();
+    
+    if (!config.secret) {
+      console.error('AUTH_SECRET not configured');
+      return new Response(
+        JSON.stringify({ message: 'Server configuration error: AUTH_SECRET not set' }),
+        { status: 500, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    return await Auth(request, config);
   } catch (error) {
     console.error('Auth route error:', error);
-    return new Response(JSON.stringify({ error: 'Authentication failed' }), {
-      status: 500,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    return new Response(
+      JSON.stringify({ 
+        message: 'Authentication server error',
+        detail: message 
+      }),
+      {
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
   }
 }
 

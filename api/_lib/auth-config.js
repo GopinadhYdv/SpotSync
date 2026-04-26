@@ -5,10 +5,20 @@ import { hash, verify } from 'argon2';
 import { getPool } from './db.js';
 import NeonAdapter from './neon-adapter.js';
 
-const pool = getPool();
-const adapter = NeonAdapter(pool);
+let pool;
+let adapter;
+
+function initializePool() {
+  if (!pool) {
+    pool = getPool();
+    adapter = NeonAdapter(pool);
+  }
+}
+
 
 function getProviders() {
+  initializePool();
+  
   const providers = [];
 
   if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
