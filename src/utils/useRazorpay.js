@@ -1,6 +1,8 @@
 import { useCallback } from 'react';
 import { toast } from 'sonner';
 
+import { RAZORPAY_KEY_ID } from './env';
+
 const useRazorpay = () => {
   const loadRazorpay = useCallback(() => {
     return new Promise((resolve) => {
@@ -42,7 +44,6 @@ const useRazorpay = () => {
       }
 
       // 2. Configure Razorpay options
-      const { RAZORPAY_KEY_ID } from './env';
       if (!RAZORPAY_KEY_ID) {
         toast.error('Razorpay key is missing');
         if (onFailure) onFailure();
