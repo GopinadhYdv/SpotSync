@@ -83,7 +83,7 @@ app.onError((err, c) => {
 
 if (process.env.CORS_ORIGINS) {
   app.use(
-    '/*',
+    '*',
     cors({
       origin: process.env.CORS_ORIGINS.split(',').map((origin) => origin.trim()),
     })

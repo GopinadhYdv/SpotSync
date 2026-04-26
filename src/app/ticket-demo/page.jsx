@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { motion, AnimatePresence, useAnimation, useMotionValue, useTransform } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
 import Navbar from "../../components/Navbar";
 
 // ── Shimmer QR Code Canvas ─────────────────────────────────────────────────

@@ -1,7 +1,7 @@
 {
   "headers": [
     {
-      "source": "/events/:path*",
+      "source": "/events/(.*)",
       "headers": [
         {
           "key": "Cache-Control",
@@ -10,7 +10,7 @@
       ]
     },
     {
-      "source": "/:path*",
+      "source": "/(.*)",
       "headers": [
         {
           "key": "X-Content-Type-Options",

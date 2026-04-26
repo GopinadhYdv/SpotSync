@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { toPng } from "html-to-image";
 import {
-  X, CreditCard, Smartphone, CheckCircle2,
+  X, Smartphone, CheckCircle2,
   Loader2, Calendar, MapPin, Download, Share2, ChevronRight, Info,
 } from "lucide-react";
 import { getProfile, saveTicket } from "../utils/accountStore";

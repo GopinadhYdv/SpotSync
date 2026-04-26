@@ -1,7 +1,7 @@
 import React from "react";
 import Navbar from "../../components/Navbar";
 import { motion } from "motion/react";
-import { Target, Users, Shield, Globe, Award, Sparkles } from "lucide-react";
+import { Users, Shield, Award, Sparkles } from "lucide-react";
 
 export default function AboutPage() {
   const values = [
