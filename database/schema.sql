@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS events (
   badge TEXT DEFAULT 'New Event',
   color TEXT DEFAULT '#7c3aed',
   accent TEXT DEFAULT '#3b82f6',
-  organizer TEXT DEFAULT 'Ease Events',
+  organizer TEXT DEFAULT 'SpotSync',
   seat_layout JSONB,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()

@@ -1,4 +1,4 @@
-# Ease Events
+# SpotSync
 
 Event discovery and ticketing app built with React Router, Hono, Neon, and Razorpay.
 

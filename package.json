@@ -1,5 +1,6 @@
 {
-	"name": "web",
+	"name": "spotsync",
+	"description": "India's #1 Real-Time Event Platform",
 	"private": true,
 	"type": "module",
 	"engines": {

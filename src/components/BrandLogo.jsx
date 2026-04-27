@@ -3,7 +3,7 @@ import { Orbit, Radio } from "lucide-react";
 import { Link } from "react-router-dom";
 import { cn } from "../utils/cn";
 
-export const BRAND_NAME = "SpoySync";
+export const BRAND_NAME = "SpotSync";
 
 export function BrandMark({ className = "", iconClassName = "", glow = true }) {
   return (

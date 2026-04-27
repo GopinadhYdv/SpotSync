@@ -1,4 +1,4 @@
-# Ease Events Vercel Deployment Guide
+# SpotSync Vercel Deployment Guide
 
 This guide matches the current repository state:
 

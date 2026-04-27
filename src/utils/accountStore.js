@@ -1,4 +1,4 @@
-// ─── Ease Events Account Store ────────────────────────────────────────────────
+// ─── SpotSync Account Store ────────────────────────────────────────────────
 // Persists user profile + purchased tickets + wishlist in localStorage.
 // Keep the legacy `spotsync_*` keys to avoid losing existing local data.
 
