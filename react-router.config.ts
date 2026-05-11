@@ -5,4 +5,7 @@ export default {
 	appDirectory: './src/app',
 	ssr: true,
 	presets: [vercelPreset()],
+	future: {
+		v8_middleware: true,
+	},
 } satisfies Config;

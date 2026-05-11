@@ -1,11 +1,44 @@
-import type {
-  Adapter,
-  AdapterSession,
-  AdapterUser,
-  VerificationToken,
-} from '@auth/core/adapters';
-import type { ProviderType } from '@auth/core/providers';
 import type { Pool } from '@neondatabase/serverless';
+
+// Inline type definitions (previously from @auth/core/adapters and @auth/core/providers)
+interface AdapterUser {
+  id: string;
+  email: string;
+  emailVerified: Date | null;
+  name?: string | null;
+  image?: string | null;
+}
+
+interface AdapterSession {
+  sessionToken: string;
+  userId: string;
+  expires: Date;
+}
+
+interface VerificationToken {
+  identifier: string;
+  expires: Date;
+  token: string;
+}
+
+type ProviderType = 'oidc' | 'oauth' | 'email' | 'credentials' | 'webauthn';
+
+interface Adapter {
+  createVerificationToken?(verificationToken: VerificationToken): Promise<VerificationToken>;
+  useVerificationToken?(params: { identifier: string; token: string }): Promise<VerificationToken | null>;
+  createUser?(user: Omit<AdapterUser, 'id'>): Promise<AdapterUser>;
+  getUser?(id: string): Promise<AdapterUser | null>;
+  getUserByEmail?(email: string): Promise<AdapterUser | null>;
+  getUserByAccount?(providerAccountId: { provider: string; providerAccountId: string }): Promise<AdapterUser | null>;
+  updateUser?(user: Partial<AdapterUser>): Promise<AdapterUser>;
+  deleteUser?(userId: string): Promise<void>;
+  linkAccount?(account: any): Promise<any>;
+  unlinkAccount?(providerAccountId: { provider: string; providerAccountId: string }): Promise<void>;
+  createSession?(session: { sessionToken: string; userId: string; expires: Date }): Promise<AdapterSession>;
+  getSessionAndUser?(sessionToken: string): Promise<{ session: AdapterSession; user: AdapterUser } | null>;
+  updateSession?(session: Partial<AdapterSession> & Pick<AdapterSession, 'sessionToken'>): Promise<AdapterSession | null | undefined>;
+  deleteSession?(sessionToken: string): Promise<void>;
+}
 
 interface NeonUser extends AdapterUser {
   accounts: {

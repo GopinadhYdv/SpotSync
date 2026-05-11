@@ -10,7 +10,7 @@ This guide matches the current repository state:
 
 - Vercel account
 - GitHub repository connected to Vercel
-- Node.js `18+`
+- Node.js `20.9+`
 - npm `9+`
 - A working PostgreSQL connection string
 - Google OAuth credentials if Google sign-in will be enabled
@@ -25,6 +25,8 @@ Create the variables from [.env.example](./.env.example) in Vercel for `Producti
 - `DATABASE_URL`
 - `AUTH_SECRET`
 - `AUTH_URL`
+- `CLERK_SECRET_KEY`
+- `VITE_CLERK_PUBLISHABLE_KEY`
 - `NEXT_PUBLIC_API_URL`
 - `NEXT_PUBLIC_APP_URL`
 - `CORS_ORIGINS`
@@ -59,10 +61,10 @@ Create the variables from [.env.example](./.env.example) in Vercel for `Producti
 
 ## 3. Recommended production values
 
-- `AUTH_URL=https://your-domain.com/api/auth`
-- `NEXT_PUBLIC_APP_URL=https://your-domain.com`
-- `NEXT_PUBLIC_API_URL=https://your-domain.com`
-- `CORS_ORIGINS=https://your-domain.com`
+- `AUTH_URL=https://spot-sync-pi.vercel.app/api/auth`
+- `NEXT_PUBLIC_APP_URL=https://spot-sync-pi.vercel.app`
+- `NEXT_PUBLIC_API_URL=https://spot-sync-pi.vercel.app`
+- `CORS_ORIGINS=https://spot-sync-pi.vercel.app`
 - `NEXT_PUBLIC_CREATE_ENV=PRODUCTION`
 
 For preview deployments, use the preview URL for `AUTH_URL`, `NEXT_PUBLIC_APP_URL`, and `NEXT_PUBLIC_API_URL`, or use your stable custom preview domain if you have one.

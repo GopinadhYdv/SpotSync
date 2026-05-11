@@ -11,6 +11,8 @@ Event discovery and ticketing app built with React Router, Hono, Neon, and Razor
 
 The app runs on `http://localhost:4000` by default.
 
+Node.js `20.9+` is required.
+
 ## Google Login Setup
 
 - Set `AUTH_URL=http://localhost:4000/api/auth`
