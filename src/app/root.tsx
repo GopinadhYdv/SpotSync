@@ -31,6 +31,7 @@ import { useLoaderData, useNavigate } from 'react-router';
 import { serializeError } from 'serialize-error';
 import { Toaster, toast } from 'sonner';
 import { useDevServerHeartbeat } from '../__create/useDevServerHeartbeat';
+import faviconUrl from '../__create/favicon.png?url';
 import type { Route } from './+types/root';
 import { rootAuthLoader } from '@clerk/react-router/ssr.server';
 import { clerkMiddleware } from '@clerk/react-router/server';
@@ -448,8 +449,10 @@ export function Layout({ children }: { children: ReactNode }) {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta />
         <Links />
-        <script type="module" src="/src/__create/dev-error-overlay.js"></script>
-        <link rel="icon" href="/src/__create/favicon.png" />
+        {import.meta.env.DEV ? (
+          <script type="module" src="/src/__create/dev-error-overlay.js"></script>
+        ) : null}
+        <link rel="icon" href={faviconUrl} />
         {LoadFontsSSR ? <LoadFontsSSR /> : null}
         <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
       </head>

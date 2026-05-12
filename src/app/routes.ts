@@ -18,7 +18,10 @@ const routes: RouteConfigEntry[] = [
   route('api/news', './api/news/route.js'),
   route('api/sponsors', './api/sponsors/route.js'),
   route('api/bookings', './api/bookings/route.js'),
+  route('api/bookings/confirm', './api/bookings/confirm/route.js'),
   route('api/admin/stats', './api/admin/stats/route.js'),
+  route('api/razorpay/create-order', './api/razorpay/create-order/route.js'),
+  route('api/razorpay/verify-payment', './api/razorpay/verify-payment/route.js'),
   route('api/__create/check-social-secrets', './api/__create/check-social-secrets/route.js'),
 
   route('*', './__create/not-found.tsx'),

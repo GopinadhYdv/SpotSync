@@ -35,9 +35,22 @@ const useRazorpay = () => {
         body: JSON.stringify({ amount, receipt: `receipt_${Date.now()}` }),
       });
 
-      const order = await response.json();
+      const raw = await response.text();
+      let order = null;
+      try {
+        order = raw ? JSON.parse(raw) : null;
+      } catch {
+        order = null;
+      }
 
-      if (order.error) {
+      if (!response.ok) {
+        const message = order?.error || `Failed to create payment order (${response.status})`;
+        toast.error(message);
+        if (onFailure) onFailure();
+        return;
+      }
+
+      if (!order || order.error) {
         toast.error('Failed to create payment order');
         if (onFailure) onFailure();
         return;
@@ -69,7 +82,18 @@ const useRazorpay = () => {
             }),
           });
 
-          const result = await verifyRes.json();
+          const verifyRaw = await verifyRes.text();
+          let result = null;
+          try {
+            result = verifyRaw ? JSON.parse(verifyRaw) : null;
+          } catch {
+            result = null;
+          }
+          if (!verifyRes.ok) {
+            toast.error(result?.error || `Payment verification failed (${verifyRes.status})`);
+            if (onFailure) onFailure();
+            return;
+          }
           if (result.status === 'success') {
             toast.success('Payment Successful!');
             if (onSuccess) onSuccess(response);

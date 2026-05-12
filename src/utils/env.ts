@@ -10,10 +10,7 @@
 // Helper to get dynamic base URL
 const getDynamicUrl = (value: string | undefined, fallbackPort: string): string => {
   if (typeof window !== 'undefined') {
-    // On client: if no value or it's localhost, use current origin
-    if (!value || value.includes('localhost') || value.includes('127.0.0.1')) {
-      return window.location.origin;
-    }
+    return window.location.origin;
   }
   return value || `http://localhost:${fallbackPort}`;
 };
